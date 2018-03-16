@@ -4,20 +4,21 @@ or **G**rand **S**on **O**f **S**trike **E**xtension for WinDBG
 
 This extension provides several commands to analyze .NET applications memory dumps. Once loaded, feel free to call !help to get more details about the usage and output of each command.
 
-`-------------------------------------------------------------------------------`
-`gsose is a debugger extension DLL designed to dig into CLR data structures.`
-`Functions are listed by category and shortcut names are listed in parenthesis.`
-`Type "!help " for detailed info on that function.`
+```-------------------------------------------------------------------------------
+gsose is a debugger extension DLL designed to dig into CLR data structures.
+Functions are listed by category and shortcut names are listed in parenthesis.
+Type "!help " for detailed info on that function.
 
-`Thread Pool                       Timers`
-`-----------------------------     -----------------------------`
-`TpQueue(tpq)                      TimerInfo (ti)`
-`TpRunning(tpr)`
+Thread Pool                       Timers
+-----------------------------     -----------------------------
+TpQueue(tpq)                      TimerInfo (ti)
+TpRunning(tpr)
 
-`Tasks                             Strings`
-`-----------------------------     -----------------------------`
-`TkState (tks)                     StringDuplicates (sd)`
-`GetMethodName (gmn)`
+Tasks                             Strings
+-----------------------------     -----------------------------
+TkState (tks)                     StringDuplicates (sd)
+GetMethodName (gmn)
+```
 
 
 
