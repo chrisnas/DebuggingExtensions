@@ -1,0 +1,67 @@
+﻿<Window x:Class="ClrMDStudio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClrMDStudio"
+        mc:Ignorable="d"
+        Title="ClrMD Studio" Icon="ClrMDIcon.png"
+        MaxHeight="85" MinHeight="85" Height="85" Width="750"
+        >
+    <Window.Resources>
+        <Image x:Key="iconThreads" Source="pack://application:,,,/Panes/threads.png" Width="24" Height="24"/>
+        <Image x:Key="iconThreadPool" Source="pack://application:,,,/Panes/deadpool.png" Width="24" Height="24"/>
+        <Image x:Key="iconStrings" Source="pack://application:,,,/Panes/strings.png" Width="24" Height="24"/>
+        <Image x:Key="iconTimers" Source="pack://application:,,,/Panes/timers.png" Width="24" Height="24"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Load a .dmp file"
+                       VerticalAlignment="Center" Click="OnOpenDumpFile"
+                       />
+            <TextBox Grid.Column="1" x:Name="tbDumpFilename" Margin="3,0,3,0"
+                     MouseDoubleClick="OnDumpFilenameDoubleClick"/>
+            <Button Grid.Column="2" VerticalAlignment="Center"
+                    x:Name="btnAnalyze" Content="Analyze..." Click="OnShowContextMenu"
+                    >
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="miThreadPool" Header="Thread Pool"
+                                  Icon="{StaticResource iconThreadPool}"
+                                  Click="OnAnalyzeThreadPool"
+                                  />
+                        <MenuItem x:Name="miThreads" Header="Threads"
+                                  Icon="{StaticResource iconThreads}"
+                                  Click="OnAnalyzeThread"
+                                  />
+                        <MenuItem x:Name="miTimers" Header="Timers"
+                                  Icon="{StaticResource iconTimers}"
+                                  Click="OnAnalyzeTimers"
+                                  />
+                        <Separator />
+                        <MenuItem x:Name="miStrings" Header="Strings"
+                                  Icon="{StaticResource iconStrings}"
+                                  Click="OnAnalyzeStrings"
+                                  />
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <TextBlock Text="Local Symbols Cache:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+            <TextBox x:Name="tbSymbolPath" Text="d:\symbols"
+                     VerticalAlignment="Center" Margin="0,1,1,1" />
+        </StackPanel>
+    </Grid>
+</Window>

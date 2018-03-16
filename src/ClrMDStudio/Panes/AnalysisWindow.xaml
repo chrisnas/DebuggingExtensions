@@ -1,0 +1,29 @@
+﻿<Window x:Class="ClrMDStudio.AnalysisWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClrMDStudio"
+        mc:Ignorable="d"
+        Title="Analysis"
+        Width="600" Height="500"
+        >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBox x:Name="tbResults"
+                 FontFamily="Consolas"
+                 Foreground="LightGray" Background="Black"
+                 AcceptsReturn="True"
+                 MaxLines="1000000"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Visible"
+                 />
+        <ProgressBar Grid.Row="1" x:Name="progressBar"
+                     Orientation="Horizontal"
+                     Minimum="0" Maximum="100" IsIndeterminate="True"
+                     Height="0" Visibility="Hidden"/>
+    </Grid>
+</Window>
