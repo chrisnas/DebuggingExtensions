@@ -1,5 +1,12 @@
 # DebuggingExtensions
-The few "debugging extensions" that have been created at Criteo to help post-mortem .NET applications analysis are now available.
+The few "debugging extensions" that have been created at Criteo to help post-mortem .NET applications analysis are now available:
+
+- as a [stand alone tool](./Documentation/ClrMDStudio.md) to load a .NET application memory dump and start automatic thread, thread pool, tasks and timer analysis.
+- as a [WinDBG extension](./Documentation/gsose.md) to get the same level of details plus more commands such as getting a method signature based on its address.
+
+More analyzers and commands will be added as needed.
+
+
 
 ## Introduction
 Most of the code is detailed in the blog series related to ClrMD:
