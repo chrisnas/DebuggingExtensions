@@ -9,6 +9,8 @@
         MaxHeight="85" MinHeight="85" Height="85" Width="750"
         >
     <Window.Resources>
+        <Image x:Key="iconGCMemory" Source="pack://application:,,,/Panes/GCMemory.png" Width="24" Height="24"/>
+        <Image x:Key="iconPinnedObjects" Source="pack://application:,,,/Panes/PinkPin.png" Width="24" Height="24"/>
         <Image x:Key="iconThreads" Source="pack://application:,,,/Panes/threads.png" Width="24" Height="24"/>
         <Image x:Key="iconThreadPool" Source="pack://application:,,,/Panes/deadpool.png" Width="24" Height="24"/>
         <Image x:Key="iconStrings" Source="pack://application:,,,/Panes/strings.png" Width="24" Height="24"/>
@@ -36,6 +38,15 @@
                     >
                 <Button.ContextMenu>
                     <ContextMenu>
+                        <MenuItem x:Name="miGCMemory" Header="GC Memory"
+                                  Icon="{StaticResource iconGCMemory}"
+                                  Click="OnShowGCMemory"
+                                  />
+                        <Separator />
+                        <MenuItem x:Name="miPinnedObjects" Header="Pinned Objects"
+                                  Icon="{StaticResource iconPinnedObjects}"
+                                  Click="OnAnalyzePinnedObjects"
+                                  />
                         <MenuItem x:Name="miThreadPool" Header="Thread Pool"
                                   Icon="{StaticResource iconThreadPool}"
                                   Click="OnAnalyzeThreadPool"

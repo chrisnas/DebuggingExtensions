@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ namespace ClrMDStudio
         private AnalysisWindow _threadsWnd;
         private AnalysisWindow _stringsWnd;
         private AnalysisWindow _timersWnd;
+        private AnalysisWindow _pinnedObjectsWnd;
+        private GCMemoryWindow _gcMemoryWnd;
 
 
     #region IClrMDHost implementation
@@ -149,6 +152,18 @@ namespace ClrMDStudio
                 _timersWnd.ForceClose();
                 _timersWnd = null;
             }
+
+            if (_pinnedObjectsWnd != null)
+            {
+                _pinnedObjectsWnd.ForceClose();
+                _pinnedObjectsWnd = null;
+            }
+
+            if (_gcMemoryWnd != null)
+            {
+                _gcMemoryWnd.ForceClose();
+                _gcMemoryWnd = null;
+            }
         }
 
         async private Task RunAsync<T>(Action<T> action, T parameter)
@@ -162,16 +177,16 @@ namespace ClrMDStudio
 
         private void AddLine(string line)
         {
-            //tbResults.Text = tbResults.Text + line + "\r\n";
+            Debug.WriteLine(line);
         }
         private void AddString(string text)
         {
-            //tbResults.Text = tbResults.Text + text;
+            Debug.Write(text);
         }
 
 
-    #region event handlers
-    #endregion
+        #region event handlers
+        #endregion
         private void OnDumpFilenameDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             tbDumpFilename.Clear();
@@ -217,6 +232,7 @@ namespace ClrMDStudio
             // it is mandatory to open the DebuggingSession in the same thread as the one that is used to create it or simply an STA thread?
             await RunAsync(() => OpenDumpFile(file, localSymbolCache));
         }
+
         async private void OnAnalyzeThreadPool(object sender, RoutedEventArgs e)
         {
             if (_session == null)
@@ -257,6 +273,7 @@ namespace ClrMDStudio
                 miThreadPool.IsEnabled = true;
             }
         }
+
         async private void OnAnalyzeThread(object sender, RoutedEventArgs e)
         {
             if (_session == null)
@@ -297,6 +314,7 @@ namespace ClrMDStudio
                 miThreads.IsEnabled = true;
             }
         }
+
         async private void OnAnalyzeStrings(object sender, RoutedEventArgs e)
         {
             if (_session == null)
@@ -308,9 +326,6 @@ namespace ClrMDStudio
             try
             {
                 miStrings.IsEnabled = false;
-                //DuplicatedStringAnalyzer analyzer = new DuplicatedStringAnalyzer(this);
-                //analyzer.MinCountThreshold = 100;
-                //await RunAsync((Action)(() => analyzer.Run()));
                 if (_stringsWnd == null)
                 {
                     _stringsWnd = new StringsWindow(
@@ -378,6 +393,85 @@ namespace ClrMDStudio
             finally
             {
                 miTimers.IsEnabled = true;
+            }
+        }
+
+        async private void OnAnalyzePinnedObjects(object sender, RoutedEventArgs e)
+        {
+            if (_session == null)
+            {
+                tbDumpFilename.Focus();
+                return;
+            }
+
+            try
+            {
+                miPinnedObjects.IsEnabled = false;
+                if (_pinnedObjectsWnd == null)
+                {
+                    _pinnedObjectsWnd = new PinnedObjectsWindow(
+                        "ClrMD Studio - Pinned Objects Analysis",
+                        _session,
+                        _staTaskScheduler
+                        );
+                    _pinnedObjectsWnd.ShowActivated = true;
+                    _pinnedObjectsWnd.ShowInTaskbar = true;
+                    _pinnedObjectsWnd.Owner = this;
+                    _pinnedObjectsWnd.Show();
+                    await _pinnedObjectsWnd.StartAnalysisAsync(null);
+                }
+                else
+                {
+                    _pinnedObjectsWnd.WindowState = WindowState.Normal;
+                    _pinnedObjectsWnd.Activate();
+                }
+            }
+            catch (Exception x)
+            {
+                AddLine(x.Message);
+            }
+            finally
+            {
+                miPinnedObjects.IsEnabled = true;
+            }
+        }
+
+        private void OnShowGCMemory(object sender, RoutedEventArgs e)
+        {
+            if (_session == null)
+            {
+                tbDumpFilename.Focus();
+                return;
+            }
+
+            try
+            {
+                miGCMemory.IsEnabled = false;
+                if (_gcMemoryWnd == null)
+                {
+                    _gcMemoryWnd = new GCMemoryWindow(
+                        "ClrMD Studio - Show GC Memory",
+                        _session,
+                        _staTaskScheduler
+                        );
+                    _gcMemoryWnd.ShowActivated = true;
+                    _gcMemoryWnd.ShowInTaskbar = true;
+                    _gcMemoryWnd.Owner = this;
+                    _gcMemoryWnd.Show();
+                }
+                else
+                {
+                    _gcMemoryWnd.WindowState = WindowState.Normal;
+                    _gcMemoryWnd.Activate();
+                }
+            }
+            catch (Exception x)
+            {
+                AddLine(x.Message);
+            }
+            finally
+            {
+                miGCMemory.IsEnabled = true;
             }
         }
     }

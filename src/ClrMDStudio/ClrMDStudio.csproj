@@ -112,6 +112,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Analyzers\HeapAnalyzer.cs" />
+    <Compile Include="Analyzers\PinnedObjectsAnalyzer.cs" />
     <Compile Include="Analyzers\TimerAnalyzer.cs" />
     <Compile Include="Panes\AnalysisWindow.xaml.cs">
       <DependentUpon>AnalysisWindow.xaml</DependentUpon>
@@ -122,6 +124,12 @@
     <Compile Include="IClrMDHost.cs" />
     <Compile Include="Analyzers\ThreadAnalyzer.cs" />
     <Compile Include="Analyzers\ThreadPoolAnalyzer.cs" />
+    <Compile Include="Panes\GCMemoryWindow.xaml.cs">
+      <DependentUpon>GCMemoryWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\GCSegmentControl.cs" />
+    <Compile Include="Panes\PinnedObjectsWindow.cs" />
+    <Compile Include="Panes\SegmentModel.cs" />
     <Compile Include="Panes\StringsWindow.cs" />
     <Compile Include="Panes\ThreadPoolWindow.cs" />
     <Page Include="Panes\AnalysisWindow.xaml">
@@ -141,6 +149,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Panes\GCMemoryWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Panes\ThreadsWindow.cs" />
@@ -186,6 +198,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Panes\Timers.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Panes\PinkPin.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Panes\GCMemory.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

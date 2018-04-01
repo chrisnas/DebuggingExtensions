@@ -24,6 +24,7 @@ namespace ClrMDStudio
             _scheduler = taskScheduler;
             _session = session;
         }
+
         public void ForceClose()
         {
             _canClose = true;

@@ -2,10 +2,116 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace ClrMDStudio
 {
+    public class GenerationInSegment
+    {
+        private List<ClrHandle> _pinnedObjects;
+
+        public GenerationInSegment()
+        {
+            _pinnedObjects = new List<ClrHandle>();
+        }
+        public int Generation { get; set; }
+        public ulong Start { get; set; }
+        public ulong End { get; set; }
+        public ulong Length { get; set; }
+        public IReadOnlyList<ClrHandle> PinnedObjects => _pinnedObjects.OrderBy(po => po.Object).ToList();
+
+        internal void AddPinnedObject(ClrHandle pinnedObject)
+        {
+            _pinnedObjects.Add(pinnedObject);
+        }
+    }
+
+    public class SegmentInfo
+    {
+        private List<GenerationInSegment> _generations;
+
+        internal SegmentInfo(int number)
+        {
+            Number = number;
+
+            _generations = new List<GenerationInSegment>();
+        }
+
+        // 0 if workstation GC
+        // # processor/core if server GC
+        public int Number { get; set; }
+        public IEnumerable<GenerationInSegment> Generations => _generations;
+        public GenerationInSegment GetGenerationFromAddress(ulong address)
+        {
+            for (int i = 0; i < _generations.Count; i++)
+            {
+                if (IsAddressInGeneration(address, _generations[i]))
+                {
+                    return _generations[i];
+                }
+            }
+
+            return null;
+        }
+
+        private bool IsAddressInGeneration(ulong address, GenerationInSegment generationInSegment)
+        {
+            return (address >= generationInSegment.Start) && (address < generationInSegment.End);
+        }
+        internal void AddGenerationInSegment(int generation, ulong start, ulong end, ulong length)
+        {
+            _generations.Add(
+                new GenerationInSegment()
+                {
+                    Generation = generation,
+                    Start = start,
+                    End = end,
+                    Length = length
+                }
+            );
+        }
+    }
+
+    public class PinnedObjectsGeneration
+    {
+        private Dictionary<string, List<ClrHandle>> _handles;
+        private int _handleCount;
+
+        public PinnedObjectsGeneration(int number)
+        {
+            Number = number;
+            _handles = new Dictionary<string, List<ClrHandle>>();
+        }
+
+        public int Number { get; }
+        public int HandleCount => _handleCount;
+        public IEnumerable<string> Types => _handles.Keys;
+        public IEnumerable<ClrHandle> GetHandles(string type)
+        {
+            List<ClrHandle> handles;
+            if (!_handles.TryGetValue(type, out handles))
+            {
+                return null;
+            }
+
+            return handles;
+        }
+
+        internal void AddHandle(ClrHandle handle)
+        {
+            _handleCount++;
+
+            var typeName = handle.Type.ToString();
+            List<ClrHandle> handles;
+            if (!_handles.TryGetValue(typeName, out handles))
+            {
+                handles = new List<ClrHandle>(2048);
+                _handles[typeName] = handles;
+            }
+            handles.Add(handle);
+        }
+    }
 
     public enum ThreadRoot
     {
@@ -71,9 +177,8 @@ namespace ClrMDStudio
         }
 
 
-        #region initialization
-
-        #endregion
+    #region initialization
+    #endregion
 
         // Some code from GitHub ClrMD implementation
         //   threadpool.cs
@@ -609,7 +714,6 @@ namespace ClrMDStudio
                     lastFrame = frame;
                 }
 
-                //sb.AppendLine(frame.DisplayString);
                 currentFrame++;
             }
             rti.BlockingDetails = bi;
@@ -751,10 +855,140 @@ namespace ClrMDStudio
             return strings;
         }
 
+        public IReadOnlyList<PinnedObjectsGeneration> ComputePinnedObjects()
+        {
+            // gen0, 1, 2 and LOH
+            const int MaxGenerations = 4;
+
+            PinnedObjectsGeneration[] generations = new PinnedObjectsGeneration[MaxGenerations];
+            for (int i = 0; i < MaxGenerations; i++)
+            {
+                generations[i] = new PinnedObjectsGeneration(i);
+            }
+
+            foreach (var gcHandle in _clr.EnumerateHandles())
+            {
+                if (!gcHandle.IsPinned)
+                    continue;
+
+                // address of the object pinned by the handle
+                var address = gcHandle.Object;
+                var segment = _heap.GetSegmentByAddress(address);
+                if (segment != null)
+                {
+                    var generation = segment.GetGeneration(address);
+
+                    // take care of LOH case
+                    if ((generation == 2) && (segment.IsLarge))
+                        generation = 3;
+
+                    generations[generation].AddHandle(gcHandle);
+                }
+                else
+                {
+                    // should never occur
+                }
+            }
+
+            return generations;
+        }
+
+        public IReadOnlyList<SegmentInfo> ComputeGCSegments()
+        {
+            // merge ClrSegments
+            List<SegmentInfo> segments = new List<SegmentInfo>();
+            var heapSegments = _heap.Segments;
+            var segmentsInfo = new List<SegmentInfo>(heapSegments.Count);
+            foreach (ClrSegment segment in heapSegments)
+            {
+                var number = segment.ProcessorAffinity;
+                var segmentInfo = segments.FirstOrDefault(s => s.Number == number);
+                if (segmentInfo == null)
+                {
+                    segmentInfo = new SegmentInfo(number);
+                    segments.Add(segmentInfo);
+                }
+
+                MergeSegment(segment, segmentInfo);
+            }
+
+            // dispatch pinned objects to the right segment/generation
+            var pinnedObjectsCount = 0;
+            foreach (var gcHandle in _clr.EnumerateHandles())
+            {
+                if (!gcHandle.IsPinned)
+                    continue;
+
+                // address of the object pinned by the handle
+                var address = gcHandle.Object;
+                var segment = _heap.GetSegmentByAddress(address);
+                if (segment != null)
+                {
+                    var generation = segment.GetGeneration(address);
+
+                    // take care of LOH case
+                    if ((generation == 2) && (segment.IsLarge))
+                    {
+                        generation = 3;
+                    }
+
+                    var genInSegment = GetGeneration(segments, address);
+
+                    Debug.Assert(genInSegment != null);
+                    Debug.Assert(genInSegment.Generation == generation);
+
+                    pinnedObjectsCount++;
+                    genInSegment.AddPinnedObject(gcHandle);
+                }
+                else
+                {
+                    // should never occur
+                }
+            }
+
+            return segments;
+        }
 
 
     #region internal helpers
     #endregion
+        private GenerationInSegment GetGeneration(List<SegmentInfo> segments, ulong address)
+        {
+            for (int i = 0; i < segments.Count; i++)
+            {
+                var generation = segments[i].GetGenerationFromAddress(address);
+                if (generation == null)
+                    continue;
+
+                return generation;
+            }
+
+            // should never happen
+            Debug.Fail(string.Format("Impossible to find generation for {0,x}", address));
+            return null;
+        }
+
+        private void MergeSegment(ClrSegment segment, SegmentInfo info)
+        {
+            // if LOH, just one generation in this segment
+            if (segment.IsLarge)
+            {
+                // add only an LOH generation in segment info
+                info.AddGenerationInSegment(3, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length);
+                return;
+            }
+
+            // contains gen0 and gen1 only if ephemeral
+            if (segment.IsEphemeral)
+            {
+                info.AddGenerationInSegment(0, segment.Gen0Start, segment.Gen0Start + segment.Gen0Length, segment.Gen0Length);
+                info.AddGenerationInSegment(1, segment.Gen1Start, segment.Gen1Start + segment.Gen1Length, segment.Gen1Length);
+            }
+
+            // always add gen2
+            info.AddGenerationInSegment(2, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length);
+        }
+
         private IEnumerable<ThreadPoolItem> EnumerateThreadPoolWorkQueue(ulong workQueueRef)
         {
             // start from the tail and follow the Next
@@ -930,7 +1164,6 @@ namespace ClrMDStudio
 
             return "";
         }
-
 
         private ThreadPoolItem GetTask(ulong taskRef)
         {
