@@ -8,6 +8,16 @@ and to run a few analyzers:
 
 ![ClrMDStudio_analyzers](./Analyzers.png)
 
+## GC Memory
+![GCMemory_Analysis](./ShowGCMemory.png)
+Show the layout of the different segments managed by the Garbage Collector and highlight the pinned objects. Click one segment on the left pane to get the details in the right  pane including the type name of the pinned objects with the array length if needed..
+
+
+## Pinned Objects
+![PinnedObjects_Analysis](./PinnedObjectsAnalysis.png)
+List all pinned and async pinned objects per generation and sorted by type.
+
+
 ## Thread Pool
 ![ThreadPool_Analysis](./ThreadPoolAnalysis.png)
 The details of pending/running tasks and thread pool work items are listed with the name of callbacks when available. Note that global/per thread local queues are also available.

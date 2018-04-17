@@ -27,11 +27,17 @@ namespace gsose
         "-----------------------------     -----------------------------\r\n"+
         "TpQueue(tpq)                      TimerInfo (ti)\r\n"+
         "TpRunning(tpr)\r\n"+
-        "\r\n"+
-        "Tasks                             Strings\r\n"+
-        "-----------------------------     -----------------------------\r\n"+
+        "\r\n" +
+        "Tasks                             Strings\r\n" +
+        "-----------------------------     -----------------------------\r\n" +
         "TkState (tks)                     StringDuplicates (sd)\r\n" +
-        "GetMethodName (gmn)                                    \r\n";
+        "GetMethodName (gmn)                                    \r\n" +
+        "\r\n"+
+        "Garbage Collector\r\n"+
+        "-----------------------------\r\n"+
+        "GCInfo (gci)\r\n" +
+        "PinnedObjects (po)\r\n"
+        ;
         //
         //
         const string _tpqHelp =
@@ -169,6 +175,45 @@ namespace gsose
             "-------------------------------------------------------------------------\r\n" +
             "\r\n";
         //
+        //
+        const string _poHelp =
+            "-------------------------------------------------------------------------------\r\n" +
+            "!PinnedObjects [minimum instance count threshold to be listed]\r\n" +
+            "\r\n" +
+            "!PinnedObjects lists pinned objects (Pinned/asyncPinned) per generation sorted by type name" +
+            "\r\n" +
+            "0:000> !po 3\r\n" +
+            "Gen0: 64\r\n" +
+            "   System.String : 64\r\n" +
+            "   -      Pinned | 1c50235d7c0\r\n" +
+            "   ...\r\n" +
+            "   -      Pinned | 1c5024d5c60\r\n" +
+            "Gen1: 0\r\n" +
+            "Gen2: 115\r\n" +
+            "LOH: 71\r\n" +
+            "   System.Object[] : 7\r\n" +
+            "   - AsyncPinned | 1c512231038\r\n" +
+            "   ...\r\n" +
+            "   - AsyncPinned | 1c5122518f8\r\n" +
+            "   System.String : 64\r\n" +
+            "   -      Pinned | 1c512252130\r\n" +
+            "   ...\r\n" +
+            "   -      Pinned | 1c512c8abe0\r\n" +
+            "-------------------------------------------------------------------------\r\n" +
+            "Total: 250 pinned object\r\n" +
+            "\r\n";
+        //
+        //
+        const string _gciHelp =
+            "-------------------------------------------------------------------------------\r\n" +
+            "!GCInfo\r\n" +
+            "\r\n" +
+            "!GCInfo lists generations per segments with pinned objects" +
+            "\r\n" +
+            "0:000> !gci\r\n" +
+            "\r\n" +
+            "\r\n";
+        //
         private static void OnHelp(IntPtr client, string args)
         {
             // Must be the first thing in our extension.
@@ -209,6 +254,17 @@ namespace gsose
                 case "gmn":
                 case "getmethodname":
                     Console.WriteLine(_gmnHelp);
+                    break;
+
+                case "po":
+                case "PinnedObjects":
+                case "pinnedObjects":
+                    Console.WriteLine(_poHelp);
+                    break;
+
+                case "gci":
+                case "GCInfo":
+                    Console.WriteLine(_gciHelp);
                     break;
 
                 default:

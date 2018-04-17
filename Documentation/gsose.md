@@ -18,6 +18,11 @@ Tasks                             Strings
 -----------------------------     -----------------------------
 TkState (tks)                     StringDuplicates (sd)
 GetMethodName (gmn)
+
+Garbage Collector
+-----------------------------
+GCInfo (gci)
+PinnedObjects (po)
 ```
 
 
@@ -158,4 +163,69 @@ Note that new lines are replaced by '##' to keep each string on one line.
        8         1968 System.Configuration.IgnoreSection, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
 -------------------------------------------------------------------------
                     0 MB
+```
+
+
+
+## GCInfo (gci)
+
+```
+!GCInfo
+
+!GCInfo lists generations per segments with pinned objects
+0:000> !gci
+13 - 7 generations
+    LOH | 9F06001000 - 9F0CDDB8C8 (   115,189,960)
+
+   gen2 | A26FA81000 - A282F860C0 (   324,030,656)
+          AsyncPinned | a2785c9308 System.Byte[4096]
+          AsyncPinned | a2785c9520 System.Byte[4096]
+          ...
+          AsyncPinned | a27896ebd8 System.Threading.OverlappedData
+          AsyncPinned | a278970a78 System.Threading.OverlappedData
+
+   gen1 | A282F860C0 - A2838F2208 (     9,879,880)
+          AsyncPinned | a283311f08 System.Byte[4096]
+
+   gen0 | A2838F2208 - A287958850 (    67,528,264)
+          AsyncPinned | a28392fd78 System.Byte[4096]
+          AsyncPinned | a2839f9a20 System.Byte[4096]
+          AsyncPinned | a283aeca60 System.Byte[4096]
+
+    LOH | A563A81000 - A566FD5968 (    55,921,000)
+          AsyncPinned | a565405fe0 System.Byte[96000]
+          AsyncPinned | a566f38918 System.Byte[96000]
+          AsyncPinned | a566fbc950 System.Byte[96000]
+
+    LOH | A5C7131000 - A5CB131038 (    67,108,920)
+
+    LOH | A674221000 - A679992490 (    91,690,128)
+   ...
+```
+
+## PinnedObjects (po)
+
+```
+!PinnedObjects [minimum instance count threshold to be listed]
+
+!PinnedObjects lists pinned objects (Pinned/asyncPinned) per generation sorted by type name
+0:000> !po 3
+Gen0: 64
+   System.String : 64
+   -      Pinned | 1c50235d7c0
+   ...
+   -      Pinned | 1c5024d5c60
+Gen1: 0
+Gen2: 115
+LOH: 71
+   System.Object[] : 7
+   - AsyncPinned | 1c512231038
+   ...
+   - AsyncPinned | 1c5122518f8
+   System.String : 64
+   -      Pinned | 1c512252130
+   ...
+   -      Pinned | 1c512c8abe0
+-------------------------------------------------------------------------
+Total: 250 pinned object
 ```

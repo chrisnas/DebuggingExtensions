@@ -33,6 +33,9 @@ namespace ClrMDStudio
             _scheduler = taskScheduler;
             _session = session;
 
+            // start the progress bar: it will be stopped at the end of the analysis
+            StartProgress();
+
             RunAsync((Action)(() => Initialize()));
         }
 
@@ -64,36 +67,26 @@ namespace ClrMDStudio
 
         private void UpdateUI(IReadOnlyList<SegmentInfo> segments)
         {
-            SetTextResult(segments);
             ShowSegments(segments);
+            StopProgress();
         }
 
-        private void SetTextResult(IReadOnlyList<SegmentInfo> segments)
+        private void SetSegmentModelResult(SegmentModel segment)
         {
-            var sb = new StringBuilder(30*1024);
-            for (int currentSegment = 0; currentSegment < segments.Count; currentSegment++)
+            var sb = new StringBuilder(30 * 1024);
+            sb.AppendLine($"   {GetGenerationType(segment.Generation)} | {segment.Start.ToString("X")} - {segment.End.ToString("X")} ({(segment.End - segment.Start).ToString("N0").PadLeft(14)})");
+
+            var pinnedObjects = segment.PinnedObjects;
+            for (int currentPinnedObject = 0; currentPinnedObject < pinnedObjects.Count; currentPinnedObject++)
             {
-                var segment = segments[currentSegment];
-                var generations = segment.Generations.OrderBy(g => g.Start).ToList();
-                sb.AppendLine($"\r\n{segment.Number} - {generations.Count} generations");
-
-                for (int currentGeneration = 0; currentGeneration < generations.Count; currentGeneration++)
-                {
-                    var generation = generations[currentGeneration];                                                                                                                                //      V---- up to 99 GB
-                    sb.AppendLine($"   {GetGenerationType(generation)} | {generation.Start.ToString("X")} - {generation.End.ToString("X")} ({(generation.End - generation.Start).ToString("N0").PadLeft(14)})");
-
-                    var pinnedObjects = generation.PinnedObjects;
-                    for (int currentPinnedObject = 0; currentPinnedObject < pinnedObjects.Count; currentPinnedObject++)
-                    {
-                        var pinnedObject = pinnedObjects[currentPinnedObject];
-                        sb.AppendFormat("          {0,11} | {1:x} {2}\r\n",
-                            pinnedObject.HandleType,
-                            pinnedObject.Object,
-                            pinnedObject.Type
-                            );
-                    }
-                }
+                var pinnedObject = pinnedObjects[currentPinnedObject];
+                sb.AppendFormat("          {0,11} | {1:x} {2}\r\n",
+                    pinnedObject.handle.HandleType,
+                    pinnedObject.handle.Object,
+                    pinnedObject.typeDescription
+                    );
             }
+
             tbResults.Text = sb.ToString();
         }
 
@@ -137,7 +130,8 @@ namespace ClrMDStudio
                 {
                     var model = new SegmentModel()
                     {
-                        PinnedAddresses = segment.PinnedObjects.Select(po => po.Object).ToList(),
+                        Generation = segment.Generation,
+                        PinnedObjects = segment.PinnedObjects,
                         Start = segment.Start,
                         End = segment.End,
                         ControlWidth = new GridLength(100D * segment.Length / maxLength, GridUnitType.Star),
@@ -157,7 +151,12 @@ namespace ClrMDStudio
 
         private string GetGenerationType(GenerationInSegment generation)
         {
-            return (generation.Generation == 3) ? " LOH" : $"gen{generation.Generation}";
+            return GetGenerationType(generation.Generation);
+        }
+
+        private string GetGenerationType(int generation)
+        {
+            return (generation == 3) ? " LOH" : $"gen{generation}";
         }
 
         async private Task RunAsync(Action action)
@@ -181,6 +180,28 @@ namespace ClrMDStudio
                 e.Cancel = true;
                 WindowState = WindowState.Minimized;
             }
+        }
+
+        private void OnMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var element = sender as FrameworkElement;
+            var model = element.DataContext as SegmentModel;
+
+            SetSegmentModelResult(model);
+        }
+
+
+    #region internal helpers
+    #endregion
+        private void StartProgress()
+        {
+            progressBar.Height = 24;
+            progressBar.Visibility = Visibility.Visible;
+        }
+        private void StopProgress()
+        {
+            progressBar.Height = 0;
+            progressBar.Visibility = Visibility.Hidden;
         }
     }
 }

@@ -9,7 +9,7 @@
         Height="800" Width="500">
    <Window.Resources>
       <DataTemplate x:Key="SegmentInGenerationTemplate">
-         <Border Margin="2" BorderBrush="SteelBlue"
+         <Border Margin="2" BorderBrush="Black"
                  Height="20" BorderThickness="1" CornerRadius="1"
                  >
             <Grid Height="16">
@@ -21,42 +21,58 @@
                   PinnedObjects="{Binding PinnedAddresses}"
                   SegmentStart="{Binding Start}"
                   SegmentEnd="{Binding End}"
+                  MouseDown="OnMouseDown"
                   />
             </Grid>
          </Border>
       </DataTemplate>
    </Window.Resources>
    <Grid Background="Black">
-      <Grid.ColumnDefinitions>
-         <ColumnDefinition Width="*"/>
-         <ColumnDefinition Width="Auto"/>
-         <ColumnDefinition Width="*"/>
-      </Grid.ColumnDefinitions>
-      <ScrollViewer Grid.Column="0">
-         <StackPanel>
-            <Expander x:Name="xpLoh" Background="Black" Foreground="White" FontSize="16" Header="LOH" IsExpanded="True">
-               <ItemsControl x:Name="icLoh"  ItemTemplate="{StaticResource SegmentInGenerationTemplate}" />
-            </Expander>
-            <Expander x:Name="xpGen2" Background="Black" Foreground="White" FontSize="16" Header="Gen2" IsExpanded="True">
-               <ItemsControl x:Name="icGen2" ItemTemplate="{StaticResource SegmentInGenerationTemplate}" />
-            </Expander>
-            <Expander x:Name="xpGen1" Background="Black" Foreground="White" FontSize="16" Header="Gen1" IsExpanded="True">
-               <ItemsControl x:Name="icGen1"  ItemTemplate="{StaticResource SegmentInGenerationTemplate}" />
-            </Expander>
-            <Expander x:Name="xpGen0" Background="Black" Foreground="White" FontSize="16" Header="Gen0" IsExpanded="True">
-               <ItemsControl x:Name="icGen0"  ItemTemplate="{StaticResource SegmentInGenerationTemplate}" />
-            </Expander>
-         </StackPanel>
-      </ScrollViewer>
-      <GridSplitter Grid.Column="1" Width="3" Background="Orange" VerticalAlignment="Stretch" HorizontalAlignment="Center"/>
-      <TextBox Grid.Column="2" x:Name="tbResults"
-               FontFamily="Consolas"
-               Foreground="LightGray" Background="Black"
-               AcceptsReturn="True"
-               MaxLines="1000000"
-               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-               ScrollViewer.VerticalScrollBarVisibility="Visible"
-               IsReadOnly="True"
-               />
+      <Grid.RowDefinitions>
+         <RowDefinition Height="*"/>
+         <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Grid Grid.Row="0">
+         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+         </Grid.ColumnDefinitions>
+         <ScrollViewer Grid.Column="0">
+            <StackPanel>
+               <Expander x:Name="xpLoh" Background="Black" Foreground="White" FontSize="16" Header="LOH" IsExpanded="True">
+                  <ItemsControl x:Name="icLoh"  ItemTemplate="{StaticResource SegmentInGenerationTemplate}"
+                  />
+               </Expander>
+               <Expander x:Name="xpGen2" Background="Black" Foreground="White" FontSize="16" Header="Gen2" IsExpanded="True">
+                  <ItemsControl x:Name="icGen2" ItemTemplate="{StaticResource SegmentInGenerationTemplate}"
+                  />
+               </Expander>
+               <Expander x:Name="xpGen1" Background="Black" Foreground="White" FontSize="16" Header="Gen1" IsExpanded="True">
+                  <ItemsControl x:Name="icGen1"  ItemTemplate="{StaticResource SegmentInGenerationTemplate}"
+                  />
+               </Expander>
+               <Expander x:Name="xpGen0" Background="Black" Foreground="White" FontSize="16" Header="Gen0" IsExpanded="True">
+                  <ItemsControl x:Name="icGen0"  ItemTemplate="{StaticResource SegmentInGenerationTemplate}"
+                  />
+               </Expander>
+            </StackPanel>
+         </ScrollViewer>
+         <GridSplitter Grid.Column="1" Width="3" Background="Orange" VerticalAlignment="Stretch" HorizontalAlignment="Center"/>
+         <TextBox Grid.Column="2" x:Name="tbResults"
+                  FontFamily="Consolas"
+                  Foreground="LightGray" Background="Black"
+                  AcceptsReturn="True"
+                  MaxLines="10000000"
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible"
+                  IsReadOnly="True"
+                  />
+      </Grid>
+      <ProgressBar Grid.Row="1" x:Name="progressBar"
+                     Orientation="Horizontal"
+                     Minimum="0" Maximum="100" IsIndeterminate="True"
+                     Height="0" Visibility="Hidden"/>
+
    </Grid>
 </Window>

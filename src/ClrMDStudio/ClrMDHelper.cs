@@ -9,21 +9,35 @@ namespace ClrMDStudio
 {
     public class GenerationInSegment
     {
-        private List<ClrHandle> _pinnedObjects;
+        private List<(ClrHandle handle, string typeDescription)> _pinnedObjects;
 
         public GenerationInSegment()
         {
-            _pinnedObjects = new List<ClrHandle>();
+            _pinnedObjects = new List<(ClrHandle, string)>();
         }
         public int Generation { get; set; }
         public ulong Start { get; set; }
         public ulong End { get; set; }
         public ulong Length { get; set; }
-        public IReadOnlyList<ClrHandle> PinnedObjects => _pinnedObjects.OrderBy(po => po.Object).ToList();
+        public IReadOnlyList<(ClrHandle handle, string typeDescription)> PinnedObjects =>
+            _pinnedObjects.OrderBy(po => po.handle.Object).ToList();
 
         internal void AddPinnedObject(ClrHandle pinnedObject)
         {
-            _pinnedObjects.Add(pinnedObject);
+            // we need to be in the right thread to call GetArrayLength()
+            // --> it would fail in the UI thread
+            _pinnedObjects.Add((pinnedObject, GetTypeDescription(pinnedObject)));
+        }
+        private string GetTypeDescription(ClrHandle clrHandle)
+        {
+            var clrType = clrHandle.Type;
+            if (clrType.IsArray)
+            {
+                // show the array size
+                return $"{clrType.ComponentType}[{clrType.GetArrayLength(clrHandle.Object).ToString()}]";
+            }
+
+            return clrHandle.Type.ToString();
         }
     }
 
@@ -179,7 +193,6 @@ namespace ClrMDStudio
 
     #region initialization
     #endregion
-
         // Some code from GitHub ClrMD implementation
         //   threadpool.cs
         //   lockinspection.cs
@@ -892,7 +905,6 @@ namespace ClrMDStudio
 
             return generations;
         }
-
         public IReadOnlyList<SegmentInfo> ComputeGCSegments()
         {
             // merge ClrSegments
@@ -967,7 +979,6 @@ namespace ClrMDStudio
             Debug.Fail(string.Format("Impossible to find generation for {0,x}", address));
             return null;
         }
-
         private void MergeSegment(ClrSegment segment, SegmentInfo info)
         {
             // if LOH, just one generation in this segment
