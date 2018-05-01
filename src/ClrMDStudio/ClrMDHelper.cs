@@ -7,20 +7,35 @@ using System.Text;
 
 namespace ClrMDStudio
 {
+    public class FreeBlock
+    {
+        public FreeBlock(ulong address, ulong size)
+        {
+            Address = address;
+            Size = size;
+        }
+        public ulong Address;
+        public ulong Size;
+    }
+
     public class GenerationInSegment
     {
         private List<(ClrHandle handle, string typeDescription)> _pinnedObjects;
+        private readonly IReadOnlyList<FreeBlock> _freeBlocks;
 
-        public GenerationInSegment()
+        public GenerationInSegment(IReadOnlyList<FreeBlock> freeBlocks)
         {
+            _freeBlocks = freeBlocks;
             _pinnedObjects = new List<(ClrHandle, string)>();
         }
+
         public int Generation { get; set; }
         public ulong Start { get; set; }
         public ulong End { get; set; }
         public ulong Length { get; set; }
         public IReadOnlyList<(ClrHandle handle, string typeDescription)> PinnedObjects =>
             _pinnedObjects.OrderBy(po => po.handle.Object).ToList();
+        public IReadOnlyList<FreeBlock> FreeBlocks => _freeBlocks;
 
         internal void AddPinnedObject(ClrHandle pinnedObject)
         {
@@ -73,15 +88,18 @@ namespace ClrMDStudio
         {
             return (address >= generationInSegment.Start) && (address < generationInSegment.End);
         }
-        internal void AddGenerationInSegment(int generation, ulong start, ulong end, ulong length)
+        internal void AddGenerationInSegment(
+            int generation, ulong start, ulong end, ulong length,
+            IReadOnlyList<FreeBlock> freeBlocks
+            )
         {
             _generations.Add(
-                new GenerationInSegment()
+                new GenerationInSegment(freeBlocks)
                 {
                     Generation = generation,
                     Start = start,
                     End = end,
-                    Length = length
+                    Length = length,
                 }
             );
         }
@@ -981,23 +999,61 @@ namespace ClrMDStudio
         }
         private void MergeSegment(ClrSegment segment, SegmentInfo info)
         {
+            var freeObjects = ComputeFreeBlocks(segment);
+
             // if LOH, just one generation in this segment
             if (segment.IsLarge)
             {
                 // add only an LOH generation in segment info
-                info.AddGenerationInSegment(3, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length);
+                info.AddGenerationInSegment(
+                    3, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length,
+                    FilterFreeBlocks(freeObjects, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length)
+                    );
                 return;
             }
 
             // contains gen0 and gen1 only if ephemeral
             if (segment.IsEphemeral)
             {
-                info.AddGenerationInSegment(0, segment.Gen0Start, segment.Gen0Start + segment.Gen0Length, segment.Gen0Length);
-                info.AddGenerationInSegment(1, segment.Gen1Start, segment.Gen1Start + segment.Gen1Length, segment.Gen1Length);
+                info.AddGenerationInSegment(
+                    0, segment.Gen0Start, segment.Gen0Start + segment.Gen0Length, segment.Gen0Length,
+                    FilterFreeBlocks(freeObjects, segment.Gen0Start, segment.Gen0Start + segment.Gen0Length)
+                    );
+                info.AddGenerationInSegment(
+                    1, segment.Gen1Start, segment.Gen1Start + segment.Gen1Length, segment.Gen1Length,
+                    FilterFreeBlocks(freeObjects, segment.Gen1Start, segment.Gen1Start + segment.Gen1Length)
+                    );
             }
 
             // always add gen2
-            info.AddGenerationInSegment(2, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length);
+            info.AddGenerationInSegment(
+                2, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length,
+                FilterFreeBlocks(freeObjects, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length)
+                );
+        }
+
+        private IReadOnlyList<FreeBlock> ComputeFreeBlocks(ClrSegment segment)
+        {
+            var freeBlocks = new List<FreeBlock>();
+
+            for (ulong obj = segment.FirstObject; obj != 0; obj = segment.NextObject(obj))
+            {
+                var type = segment.Heap.GetObjectType(obj);
+                if (type.IsFree)
+                {
+                    freeBlocks.Add(new FreeBlock(obj, type.GetSize(obj)));
+                }
+            }
+
+            return freeBlocks;
+        }
+        private IReadOnlyList<FreeBlock> FilterFreeBlocks(
+            IReadOnlyList<FreeBlock> freeObjects,
+            ulong start, ulong end)
+        {
+            return freeObjects
+                    .Where(freeBlock => (freeBlock.Address >= start) && (freeBlock.Address + freeBlock.Size < end))
+                    .ToList();
         }
 
         private IEnumerable<ThreadPoolItem> EnumerateThreadPoolWorkQueue(ulong workQueueRef)

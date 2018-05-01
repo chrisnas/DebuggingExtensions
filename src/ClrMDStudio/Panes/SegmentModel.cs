@@ -19,7 +19,9 @@ namespace ClrMDStudio
             }
         }
 
-        public IReadOnlyList<(ClrHandle handle, string typeDescription)> PinnedObjects{ get; set; }
+        public IReadOnlyList<(ClrHandle handle, string typeDescription)> PinnedObjects { get; set; }
+
+        public IReadOnlyList<FreeBlock> FreeBlocks { get; set; }
 
         public ulong Start { get; set; }
 

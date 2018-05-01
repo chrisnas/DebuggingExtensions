@@ -19,6 +19,7 @@
                </Grid.ColumnDefinitions>
                <local:GcSegmentControl Background="SteelBlue"
                   PinnedObjects="{Binding PinnedAddresses}"
+                  FreeBlocks="{Binding FreeBlocks}"
                   SegmentStart="{Binding Start}"
                   SegmentEnd="{Binding End}"
                   MouseDown="OnMouseDown"

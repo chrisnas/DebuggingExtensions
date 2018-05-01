@@ -87,6 +87,13 @@ namespace ClrMDStudio
                     );
             }
 
+            var freeBlocks = segment.FreeBlocks;
+            for (int currentFreeBlock = 0; currentFreeBlock < freeBlocks.Count; currentFreeBlock++)
+            {
+                var freeBlock = freeBlocks[currentFreeBlock];
+                sb.AppendFormat($"                      ~ {freeBlock.Address.ToString("x")}  {freeBlock.Size.ToString("N0").PadLeft(14)}\r\n");
+            }
+
             tbResults.Text = sb.ToString();
         }
 
@@ -132,6 +139,7 @@ namespace ClrMDStudio
                     {
                         Generation = segment.Generation,
                         PinnedObjects = segment.PinnedObjects,
+                        FreeBlocks = segment.FreeBlocks,
                         Start = segment.Start,
                         End = segment.End,
                         ControlWidth = new GridLength(100D * segment.Length / maxLength, GridUnitType.Star),
