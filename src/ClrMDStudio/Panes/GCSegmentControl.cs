@@ -93,14 +93,14 @@ namespace ClrMDStudio
             var height = ActualHeight * 0.6;
             var y = ActualHeight * 0.2;
 
-            var freeBlocks = new HashSet<double>();
+            var freeBlocks = new HashSet<int>();
             foreach (var freeBlock in FreeBlocks)
             {
                 var relativeAddress = freeBlock.Address - SegmentStart;
                 var posInPixel = relativeAddress / sizePerPixel;
                 var widthInPixel = freeBlock.Size / sizePerPixel;
                 widthInPixel = (widthInPixel == 0) ? 1 : widthInPixel;
-                if (freeBlocks.Add(posInPixel))
+                if (freeBlocks.Add((int)posInPixel))
                 {
                     dc.DrawRectangle(
                         _freeFillBrush, _freeOutlinePen,
