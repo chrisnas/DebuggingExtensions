@@ -10,7 +10,7 @@ and to run a few analyzers:
 
 ## GC Memory
 ![GCMemory_Analysis](./ShowGCMemory.png)
-Show the layout of the different segments managed by the Garbage Collector and highlight the pinned objects. Click one segment on the left pane to get the details in the right  pane including the type name of the pinned objects with the array length if needed..
+Show the layout of the different segments managed by the Garbage Collector and highlight the pinned objects in red and the free blocks in white. Click one segment on the left pane to get the details in the right  pane including the type name of the pinned objects with the array length if needed and the list of free blocks.
 
 
 ## Pinned Objects
