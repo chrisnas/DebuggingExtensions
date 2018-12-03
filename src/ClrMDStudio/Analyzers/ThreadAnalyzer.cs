@@ -28,7 +28,7 @@ namespace ClrMDStudio
             try
             {
                 var clr = _host.Session.Clr;
-                var threadPool = clr.GetThreadPool();
+                var threadPool = clr.ThreadPool;
                 _host.WriteLine(string.Format(
                     "ThreadPool: {0} threads (#idle = {1} + #running = {2} | #dead = {3} | #max = {4})",
                     threadPool.TotalThreads.ToString(),

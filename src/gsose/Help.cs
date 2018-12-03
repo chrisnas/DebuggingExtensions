@@ -32,11 +32,17 @@ namespace gsose
         "-----------------------------     -----------------------------\r\n" +
         "TkState (tks)                     StringDuplicates (sd)\r\n" +
         "GetMethodName (gmn)                                    \r\n" +
-        "\r\n"+
-        "Garbage Collector\r\n"+
-        "-----------------------------\r\n"+
+        "\r\n" +
+        "Data structures\r\n" +
+        "-----------------------------\r\n" +
+        "DumpConcurrentDictionary (dcd)\r\n" +
+        //"DumpConcurrentQueue (dcq)\r\n" +
+        "\r\n" +
+        "Garbage Collector\r\n" +
+        "-----------------------------\r\n" +
         "GCInfo (gci)\r\n" +
-        "PinnedObjects (po)\r\n"
+        "PinnedObjects (po)\r\n" +
+        "\r\n"
         ;
         //
         //
@@ -214,6 +220,25 @@ namespace gsose
             "\r\n" +
             "\r\n";
         //
+        //
+        private const string _dcdHelp =
+            "-------------------------------------------------------------------------------\r\n" +
+            "!DumpConcurrentDictionary\r\n" +
+            "\r\n" +
+            "!dcd lists all items in the given concurrent dictionary" +
+            "\r\n" +
+            "0:000> !dcd [address]\r\n" +
+            "\r\n";        //
+        //
+        private const string _dcqHelp =
+            "-------------------------------------------------------------------------------\r\n" +
+            "!DumpConcurrentQueue\r\n" +
+            "\r\n" +
+            "!dcq lists all items in the given concurrent queue" +
+            "\r\n" +
+            "0:000> !dcq [address]\r\n" +
+            "\r\n";
+        //
         private static void OnHelp(IntPtr client, string args)
         {
             // Must be the first thing in our extension.
@@ -266,6 +291,16 @@ namespace gsose
                 case "GCInfo":
                     Console.WriteLine(_gciHelp);
                     break;
+
+                case "dcd":
+                case "DumpConcurrentDictionary":
+                    Console.WriteLine(_dcdHelp);
+                    break;
+
+                //case "dcq":
+                //case "DumpConcurrentQueue":
+                //    Console.WriteLine(_dcqHelp);
+                //    break;
 
                 default:
                     Console.WriteLine(_help);

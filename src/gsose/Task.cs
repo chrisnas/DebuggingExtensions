@@ -123,7 +123,7 @@ namespace gsose
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrHeap heap = Runtime.GetHeap();
+            ClrHeap heap = Runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
@@ -158,7 +158,7 @@ namespace gsose
 
         private static ulong GetTaskStateFromAddress(ulong address)
         {
-            var type = Runtime.GetHeap().GetObjectType(address);
+            var type = Runtime.Heap.GetObjectType(address);
             if ((type != null) && (type.Name.StartsWith("System.Threading.Task")))
             {
                 // try to get the m_stateFlags field value

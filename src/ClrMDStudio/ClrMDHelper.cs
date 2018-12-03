@@ -197,7 +197,7 @@ namespace ClrMDStudio
                 throw new ArgumentNullException("clr");
 
             _clr = clr;
-            _heap = clr.GetHeap();
+            _heap = clr.Heap;
 
             _eventTypes = new HashSet<string>();
             _eventTypes.Add("System.Threading.Mutex");

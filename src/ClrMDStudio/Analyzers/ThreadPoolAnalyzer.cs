@@ -148,7 +148,7 @@ namespace ClrMDStudio
                         _host.WriteLine(string.Format(" {0,4}\r\n", _workItemCount.ToString()));
                     }
 
-                    var threadPool = _host.Session.Clr.GetThreadPool();
+                    var threadPool = _host.Session.Clr.ThreadPool;
                     _host.WriteLine(string.Format(
                         "\r\nCPU = {0}% for {1} threads (#idle = {2} + #running = {3} | #dead = {4} | #max = {5})",
                         threadPool.CpuUtilization.ToString(),
@@ -297,7 +297,7 @@ namespace ClrMDStudio
                 string shortTypeName = "";
                 if (bi.ObjRef != 0)
                 {
-                    ClrType type = _host.Session.Clr.GetHeap().GetObjectType(bi.ObjRef);
+                    ClrType type = _host.Session.Clr.Heap.GetObjectType(bi.ObjRef);
                     if (type != null)
                     {
                         string typeName = type.Name;
@@ -386,7 +386,7 @@ namespace ClrMDStudio
             //
             try
             {
-                var heap = _host.Session.Clr.GetHeap();
+                var heap = _host.Session.Clr.Heap;
                 var clr = _host.Session.Clr;
 
                 _host.WriteLine("global work item queue________________________________");
@@ -487,7 +487,7 @@ namespace ClrMDStudio
                         _host.WriteLine(string.Format(" {0,4}\r\n", _workItemCount.ToString()));
                     }
 
-                    var threadPool = _host.Session.Clr.GetThreadPool();
+                    var threadPool = _host.Session.Clr.ThreadPool;
                     _host.WriteLine(string.Format(
                         "\r\nCPU = {0}% for {1} threads (#idle = {2} + #running = {3} | #dead = {4} | #max = {5})",
                         threadPool.CpuUtilization.ToString(),
@@ -639,7 +639,7 @@ namespace ClrMDStudio
 
             try
             {
-                var threadPool = _host.Session.Clr.GetThreadPool();
+                var threadPool = _host.Session.Clr.ThreadPool;
 
                 foreach (var work in threadPool.EnumerateManagedWorkItems())
                 {
@@ -747,7 +747,7 @@ namespace ClrMDStudio
 
 
                 // provide a summary sorted by count
-                var threadPool = _host.Session.Clr.GetThreadPool();
+                var threadPool = _host.Session.Clr.ThreadPool;
                 _host.WriteLine(string.Format(
                     "CPU = {0}% for {1} threads (#idle = {2} + #running = {3} | #dead = {4} | #max = {5})",
                     threadPool.CpuUtilization.ToString(),
@@ -781,16 +781,7 @@ namespace ClrMDStudio
         private string GetFrameInformation(ClrThread thread, ClrStackFrame frame, ClrStackFrame firstFrame)
         {
             // get the method call from the given frame
-            string info = "";
-            var sourceLocation = frame.GetFileAndLineNumber();
-            if (sourceLocation == null)
-            {
-                info = frame.DisplayString;
-            }
-            else  // it seems that GetFileAndLineNumber() does not work --> need to figure out what is the other ClrMD API to dig into the symbols
-            {
-                info = frame.DisplayString + "[" + sourceLocation.FilePath + ", Line " + sourceLocation.LineNumber.ToString() + "]";
-            }
+            string info = frame.DisplayString;
 
             // look for locking information
             if (firstFrame.Method.Name.Contains("Wait") || (firstFrame.Method.Name == "Enter") && (firstFrame.Method.Type.Name == "System.Threading.Monitor"))

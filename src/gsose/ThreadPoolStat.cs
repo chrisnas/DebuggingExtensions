@@ -40,8 +40,8 @@ namespace gsose
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrThreadPool threadPool = Runtime.GetThreadPool();
-            ClrHeap heap = Runtime.GetHeap();
+            ClrThreadPool threadPool = Runtime.ThreadPool;
+            ClrHeap heap = Runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
@@ -62,19 +62,19 @@ namespace gsose
                     switch (item.Type)
                     {
                         case ThreadRoot.Task:
-                            Console.Write(string.Format("<link cmd=\"!do {0:X16}\">0x{0:X16}</link> Task", item.Address));
+                            Console.Write(string.Format("<link cmd=\"!do {0:X}\">0x{0:X16}</link> Task", item.Address));
                             Console.WriteLine(" | " + item.MethodName);
                             UpdateStats(_tasks, item.MethodName, ref _taskCount);
                             break;
 
                         case ThreadRoot.WorkItem:
-                            Console.Write(string.Format("<link cmd=\"!do {0}\">0x{0:X16}</link> Work", item.Address));
+                            Console.Write(string.Format("<link cmd=\"!do {0:X}\">0x{0:X16}</link> Work", item.Address));
                             Console.WriteLine(" | " + item.MethodName);
                             UpdateStats(_workItems, item.MethodName, ref _workItemCount);
                             break;
 
                         default:
-                            Console.WriteLine(string.Format("<link cmd=\"!do {0}\">0x{0:X16}</link> {1}", item.Address, item.MethodName));
+                            Console.WriteLine(string.Format("<link cmd=\"!do {0:X}\">0x{0:X16}</link> {1}", item.Address, item.MethodName));
                             break;
                     }
                 }
@@ -97,7 +97,7 @@ namespace gsose
                                 break;
 
                             case ThreadRoot.WorkItem:
-                                Console.Write(string.Format("<link cmd=\"!do {0}\">0x{0:X16}</link> Work", item.Address));
+                                Console.Write(string.Format("<link cmd=\"!do {0:X}\">0x{0:X16}</link> Work", item.Address));
                                 Console.WriteLine(" | " + item.MethodName);
                                 UpdateStats(_workItems, item.MethodName, ref _workItemCount);
                                 break;
@@ -167,8 +167,8 @@ namespace gsose
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrThreadPool threadPool = Runtime.GetThreadPool();
-            ClrHeap heap = Runtime.GetHeap();
+            ClrThreadPool threadPool = Runtime.ThreadPool;
+            ClrHeap heap = Runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
@@ -313,7 +313,7 @@ namespace gsose
                 string shortTypeName = "";
                 if (bi.ObjRef != 0)
                 {
-                    ClrType type = Runtime.GetHeap().GetObjectType(bi.ObjRef);
+                    ClrType type = Runtime.Heap.GetObjectType(bi.ObjRef);
                     if (type != null)
                     {
                         string typeName = type.Name;

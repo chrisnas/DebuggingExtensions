@@ -22,21 +22,33 @@ namespace gsose
             AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
         }
 
-        static readonly string ClrMD = "Microsoft.Diagnostics.Runtime";
+        static readonly string[] _dependencies = new string[]
+        {
+            "Microsoft.Diagnostics.Runtime",
+            "DynaMD",
+            "System.Runtime.CompilerServices.Unsafe",
+            "System.ValueTuple",
+        };
+
         private static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
         {
-            if (args.Name.Contains(ClrMD))
+            var dependency = _dependencies.FirstOrDefault((name) => args.Name.Contains(name));
+            if (dependency != null)
             {
+                Console.Write($"Loading {dependency}...");
+
                 string codebase = Assembly.GetExecutingAssembly().CodeBase;
 
                 if (codebase.StartsWith("file://"))
                     codebase = codebase.Substring(8).Replace('/', '\\');
 
                 string directory = Path.GetDirectoryName(codebase);
-                string path = Path.Combine(directory, ClrMD) + ".dll";
+                string path = Path.Combine(directory, dependency) + ".dll";
+                Console.WriteLine($" from {path}");
                 return Assembly.LoadFile(path);
             }
 
+            Console.WriteLine($"Unknown gsose reference: {args.Name}");
             return null;
         }
 

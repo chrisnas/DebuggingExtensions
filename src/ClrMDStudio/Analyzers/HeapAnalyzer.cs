@@ -132,7 +132,7 @@ namespace ClrMDStudio.Analyzers
             {
                 ClrMDHelper helper = new ClrMDHelper(_host.Session.Clr);
                 var clr = _host.Session.Clr;
-                var heap = clr.GetHeap();
+                var heap = clr.Heap;
 
                 //var segments = heap.Segments;
                 //var segmentsInfo = new List<SegmentInfo>(segments.Count);

@@ -23,7 +23,7 @@ namespace ClrMDStudio
                     if (Clr == null)
                         throw new InvalidOperationException("First open a Clr/Target to get a ManagedHeap");
 
-                    _managedHeap = Clr.GetHeap();
+                    _managedHeap = Clr.Heap;
                 }
                 return _managedHeap;
             }
@@ -102,7 +102,7 @@ namespace ClrMDStudio
             else
             {
                 // special case for mini dumps
-                if (Clr.GetThreadPool() == null)
+                if (Clr.ThreadPool == null)
                 {
                     throw new InvalidOperationException("Impossible to get CLR information: might be a mini-dump...");
                 }
