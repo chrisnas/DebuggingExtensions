@@ -48,9 +48,8 @@ namespace gsose
             ClrMDHelper helper = new ClrMDHelper(Runtime);
 
             // The ThreadPool is keeping track of the pending work items into two different areas:
-            // - a global queue: stored by ThreadPoolWorkQueue instances of the ThreadPoolGlobals.workQueue static field
-            // - several per thread (TLS) local queues: stored in SparseArray<ThreadPoolWorkQueue+WorkStealingQueue> linked from ThreadPoolWorkQueue.allThreadQueues static fields
-            // both are using arrays of Task or QueueUserWorkItemCallback
+            // - a global queue
+            // - several per thread (TLS) local queues
             //
             // NOTE: don't show other thread pool related topics such as timer callbacks or wait objects
             //
@@ -79,10 +78,6 @@ namespace gsose
                     }
                 }
 
-                // look into the local stealing queues in each thread TLS
-                // hopefully, they are all stored in static (one per app domain) instance
-                // of ThreadPoolWorkQueue.SparseArray<ThreadPoolWorkQueue.WorkStealingQueue>
-                //
                 Console.WriteLine("\r\nlocal per thread work items_____________________________________");
                 try
                 {

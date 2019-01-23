@@ -19,6 +19,11 @@ Tasks                             Strings
 TkState (tks)                     StringDuplicates (sd)
 GetMethodName (gmn)
 
+Data structures
+-----------------------------
+DumpConcurrentDictionary (dcd)
+DumpConcurrentQueue (dcq)
+
 Garbage Collector
 -----------------------------
 GCInfo (gci)
@@ -165,6 +170,39 @@ Note that new lines are replaced by '##' to keep each string on one line.
                     0 MB
 ```
 
+
+## DumpConcurrentDictionary (dcd)
+
+```
+!DumpConcurrentDictionary
+
+!dcd lists all items in the given concurrent dictionary
+0:000> !dcd 000001d10df6daa0
+System.Collections.Concurrent.ConcurrentDictionary<System.Int32,NetCoreConsoleApp.InstanceInConcurrentDataStructures>
+ 2237 buckets
+0 = 0x000001D10DF5B420 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)
+1 = 0x000001D10DF5B438 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)
+2 = 0x000001D10DF5B450 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)
+3 = 0x000001D10DF5B468 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)
+4 = 0x000001D10DF5B480 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)
+...
+```
+
+
+## DumpConcurrentQueue (dcq)
+
+```
+!DumpConcurrentQueue
+
+!dcq lists all items in the given concurrent queue. Show each item type with -t as parameter
+0:000> !dcq 000001d10df67420 -t
+   1 - 0x000001D10DF5B420 | NetCoreConsoleApp.InstanceInConcurrentDataStructures
+   2 - 0x000001D10DF5B438 | NetCoreConsoleApp.InstanceInConcurrentDataStructures
+   3 - 0x000001D10DF5B450 | NetCoreConsoleApp.InstanceInConcurrentDataStructures
+   4 - 0x000001D10DF5B468 | NetCoreConsoleApp.InstanceInConcurrentDataStructures
+   5 - 0x000001D10DF5B480 | NetCoreConsoleApp.InstanceInConcurrentDataStructures
+   ...
+```
 
 
 ## GCInfo (gci)

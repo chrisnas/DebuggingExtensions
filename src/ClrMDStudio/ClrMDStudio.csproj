@@ -83,8 +83,8 @@
     <Reference Include="DynaMD, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\DynaMD.1.0.7.1\lib\net452\DynaMD.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Diagnostics.Runtime, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Diagnostics.Runtime.1.0.0\lib\net45\Microsoft.Diagnostics.Runtime.dll</HintPath>
+    <Reference Include="Microsoft.Diagnostics.Runtime, Version=1.0.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.Runtime.1.0.2\lib\net45\Microsoft.Diagnostics.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="ParallelExtensionsExtras, Version=1.2.3.0, Culture=neutral, PublicKeyToken=665f4d61f853b5a9, processorArchitecture=MSIL">
       <HintPath>..\packages\ParallelExtensionsExtras.1.2.0.0\lib\net40\ParallelExtensionsExtras.dll</HintPath>

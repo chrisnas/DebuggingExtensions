@@ -51,21 +51,56 @@ namespace ClrMDStudio
             _tasks = new Dictionary<string, WorkInfo>();
             _taskCount = 0;
 
-            ClrMDHelper helper = new ClrMDHelper(_host.Session.Clr);
-
-            // The ThreadPool is keeping track of the pending work items into two different areas:
-            // - a global queue: stored by ThreadPoolWorkQueue instances of the ThreadPoolGlobals.workQueue static field
-            // - several per thread (TLS) local queues: stored in SparseArray<ThreadPoolWorkQueue+WorkStealingQueue> linked from ThreadPoolWorkQueue.allThreadQueues static fields
-            // both are using arrays of Task or QueueUserWorkItemCallback
-            //
-            // NOTE: don't show other thread pool related topics such as timer callbacks or wait objects
-            //
             try
             {
-                _host.WriteLine("global work item queue________________________________");
-                foreach (var item in helper.EnumerateGlobalThreadPoolItems())
+                ClrMDHelper helper = new ClrMDHelper(_host.Session.Clr);
+                var corelib = helper.GetMscorlib();
+                DumpThreadPool(corelib, helper);
+            }
+            catch (Exception x)
+            {
+                _host.WriteLine(x.Message);
+                success = false;
+            }
+            finally
+            {
+                _host.OnAnalysisDone(success);
+            }
+        }
+
+        private void DumpThreadPool(ClrModule corelib, ClrMDHelper helper)
+        {
+            // NOTE: don't show other thread pool related topics such as timer callbacks or wait objects
+            //
+            _host.WriteLine("global work item queue________________________________");
+            foreach (var item in helper.EnumerateGlobalThreadPoolItems())
+            {
+                switch (item.Type)
                 {
-                    switch(item.Type)
+                    case ThreadRoot.Task:
+                        _host.Write(string.Format("0x{0:X16}\tTask", item.Address));
+                        _host.WriteLine(" | " + item.MethodName);
+                        UpdateStats(_tasks, item.MethodName, ref _taskCount);
+                        break;
+
+                    case ThreadRoot.WorkItem:
+                        _host.Write(string.Format("0x{0:X16}\tWork", item.Address));
+                        _host.WriteLine(" | " + item.MethodName);
+                        UpdateStats(_workItems, item.MethodName, ref _workItemCount);
+                        break;
+
+                    default:
+                        _host.WriteLine(string.Format("0x{0:X16}\t{1}", item.Address, item.MethodName));
+                        break;
+                }
+            }
+
+            _host.WriteLine("\r\nlocal per thread work items_____________________________________");
+            try
+            {
+                foreach (var item in helper.EnumerateLocalThreadPoolItems())
+                {
+                    switch (item.Type)
                     {
                         case ThreadRoot.Task:
                             _host.Write(string.Format("0x{0:X16}\tTask", item.Address));
@@ -84,93 +119,54 @@ namespace ClrMDStudio
                             break;
                     }
                 }
-
-                // look into the local stealing queues in each thread TLS
-                // hopefully, they are all stored in static (one per app domain) instance
-                // of ThreadPoolWorkQueue.SparseArray<ThreadPoolWorkQueue.WorkStealingQueue>
-                //
-                _host.WriteLine("\r\nlocal per thread work items_____________________________________");
-                try
-                {
-                    foreach (var item in helper.EnumerateLocalThreadPoolItems())
-                    {
-                        switch (item.Type)
-                        {
-                            case ThreadRoot.Task:
-                                _host.Write(string.Format("0x{0:X16}\tTask", item.Address));
-                                _host.WriteLine(" | " + item.MethodName);
-                                UpdateStats(_tasks, item.MethodName, ref _taskCount);
-                                break;
-
-                            case ThreadRoot.WorkItem:
-                                _host.Write(string.Format("0x{0:X16}\tWork", item.Address));
-                                _host.WriteLine(" | " + item.MethodName);
-                                UpdateStats(_workItems, item.MethodName, ref _workItemCount);
-                                break;
-
-                            default:
-                                _host.WriteLine(string.Format("0x{0:X16}\t{1}", item.Address, item.MethodName));
-                                break;
-                        }
-                    }
-                }
-                finally
-                {
-                    // provide a summary sorted by count
-                    if ((_tasks.Values.Count > 0) || (_workItems.Values.Count > 0))
-                    {
-                        _host.WriteLine("\r\n____________________________________________________________________________________________________\r\nCount Details\r\n----------------------------------------------------------------------------------------------------");
-                    }
-
-                    // tasks first if any
-                    StringBuilder sb = new StringBuilder(Math.Max(_tasks.Values.Count, _workItems.Count) * 16);
-                    if (_tasks.Values.Count > 0)
-                    {
-                        foreach (var item in _tasks.Values.OrderBy(wi => wi.Count))
-                        {
-                            sb.AppendFormat(" {0,4} Task  {1}\r\n", item.Count.ToString(), item.Name);
-                        }
-                        _host.Write(sb.ToString());
-                        _host.WriteLine(" ----");
-                        _host.WriteLine(string.Format(" {0,4}\r\n", _taskCount.ToString()));
-                    }
-
-                    // then QueueUserWorkItem next if any
-                    if (_workItems.Values.Count > 0)
-                    {
-                        sb.Clear();
-                        foreach (var item in _workItems.Values.OrderBy(wi => wi.Count))
-                        {
-                            sb.AppendFormat(" {0,4} Work  {1}\r\n", item.Count.ToString(), item.Name);
-                        }
-                        _host.Write(sb.ToString());
-                        _host.WriteLine(" ----");
-                        _host.WriteLine(string.Format(" {0,4}\r\n", _workItemCount.ToString()));
-                    }
-
-                    var threadPool = _host.Session.Clr.ThreadPool;
-                    _host.WriteLine(string.Format(
-                        "\r\nCPU = {0}% for {1} threads (#idle = {2} + #running = {3} | #dead = {4} | #max = {5})",
-                        threadPool.CpuUtilization.ToString(),
-                        threadPool.TotalThreads.ToString(),
-                        threadPool.IdleThreads.ToString(),
-                        threadPool.RunningThreads.ToString(),
-                        _host.Session.Clr.Threads.Count(t => t.IsThreadpoolWorker && !t.IsThreadpoolCompletionPort && !t.IsAlive && !t.IsThreadpoolGate && !t.IsThreadpoolTimer && !t.IsThreadpoolWait).ToString(),
-                        threadPool.MaxThreads.ToString()
-                        ));
-
-                    // show the running worker threads
-                    DumpRunningThreadpoolThreads(helper);
-                }
-            }
-            catch (Exception x)
-            {
-                _host.WriteLine(x.Message);
-                success = false;
             }
             finally
             {
-                _host.OnAnalysisDone(success);
+                // provide a summary sorted by count
+                if ((_tasks.Values.Count > 0) || (_workItems.Values.Count > 0))
+                {
+                    _host.WriteLine("\r\n____________________________________________________________________________________________________\r\nCount Details\r\n----------------------------------------------------------------------------------------------------");
+                }
+
+                // tasks first if any
+                StringBuilder sb = new StringBuilder(Math.Max(_tasks.Values.Count, _workItems.Count) * 16);
+                if (_tasks.Values.Count > 0)
+                {
+                    foreach (var item in _tasks.Values.OrderBy(wi => wi.Count))
+                    {
+                        sb.AppendFormat(" {0,4} Task  {1}\r\n", item.Count.ToString(), item.Name);
+                    }
+                    _host.Write(sb.ToString());
+                    _host.WriteLine(" ----");
+                    _host.WriteLine(string.Format(" {0,4}\r\n", _taskCount.ToString()));
+                }
+
+                // then QueueUserWorkItem next if any
+                if (_workItems.Values.Count > 0)
+                {
+                    sb.Clear();
+                    foreach (var item in _workItems.Values.OrderBy(wi => wi.Count))
+                    {
+                        sb.AppendFormat(" {0,4} Work  {1}\r\n", item.Count.ToString(), item.Name);
+                    }
+                    _host.Write(sb.ToString());
+                    _host.WriteLine(" ----");
+                    _host.WriteLine(string.Format(" {0,4}\r\n", _workItemCount.ToString()));
+                }
+
+                var threadPool = _host.Session.Clr.ThreadPool;
+                _host.WriteLine(string.Format(
+                    "\r\nCPU = {0}% for {1} threads (#idle = {2} + #running = {3} | #dead = {4} | #max = {5})",
+                    threadPool.CpuUtilization.ToString(),
+                    threadPool.TotalThreads.ToString(),
+                    threadPool.IdleThreads.ToString(),
+                    threadPool.RunningThreads.ToString(),
+                    _host.Session.Clr.Threads.Count(t => t.IsThreadpoolWorker && !t.IsThreadpoolCompletionPort && !t.IsAlive && !t.IsThreadpoolGate && !t.IsThreadpoolTimer && !t.IsThreadpoolWait).ToString(),
+                    threadPool.MaxThreads.ToString()
+                    ));
+
+                // show the running worker threads
+                DumpRunningThreadpoolThreads(helper);
             }
         }
 

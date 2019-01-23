@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ClrMDStudio")]
-[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2016-2018")]
+[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2016-2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -36,7 +36,7 @@ namespace gsose
         "Data structures\r\n" +
         "-----------------------------\r\n" +
         "DumpConcurrentDictionary (dcd)\r\n" +
-        //"DumpConcurrentQueue (dcq)\r\n" +
+        "DumpConcurrentQueue (dcq)\r\n" +
         "\r\n" +
         "Garbage Collector\r\n" +
         "-----------------------------\r\n" +
@@ -227,16 +227,28 @@ namespace gsose
             "\r\n" +
             "!dcd lists all items in the given concurrent dictionary" +
             "\r\n" +
-            "0:000> !dcd [address]\r\n" +
+            "0:000> !dcd 000001d10df6daa0\r\n" +
+            "System.Collections.Concurrent.ConcurrentDictionary<System.Int32, NetCoreConsoleApp.InstanceInConcurrentDataStructures>\r\n" +
+            " 2237 buckets\r\n" +
+            "0 = 0x000001D10DF5B420 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)\r\n" +
+            "1 = 0x000001D10DF5B438 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)\r\n" +
+            "2 = 0x000001D10DF5B450 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)\r\n" +
+            "3 = 0x000001D10DF5B468 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)\r\n" +
+            "4 = 0x000001D10DF5B480 (NetCoreConsoleApp.InstanceInConcurrentDataStructures)\r\n" +
             "\r\n";        //
         //
         private const string _dcqHelp =
             "-------------------------------------------------------------------------------\r\n" +
             "!DumpConcurrentQueue\r\n" +
             "\r\n" +
-            "!dcq lists all items in the given concurrent queue" +
+            "!dcq lists all items in the given concurrent queue. Show each item type with -t as parameter" +
             "\r\n" +
-            "0:000> !dcq [address]\r\n" +
+            "0:000> !dcq 000001d10df67420 -t\r\n" +
+            "   1 - 0x000001D10DF5B420 | NetCoreConsoleApp.InstanceInConcurrentDataStructures\r\n" +
+            "   2 - 0x000001D10DF5B438 | NetCoreConsoleApp.InstanceInConcurrentDataStructures\r\n" +
+            "   3 - 0x000001D10DF5B450 | NetCoreConsoleApp.InstanceInConcurrentDataStructures\r\n" +
+            "   4 - 0x000001D10DF5B468 | NetCoreConsoleApp.InstanceInConcurrentDataStructures\r\n" +
+            "   5 - 0x000001D10DF5B480 | NetCoreConsoleApp.InstanceInConcurrentDataStructures\r\n" +
             "\r\n";
         //
         private static void OnHelp(IntPtr client, string args)
@@ -297,10 +309,10 @@ namespace gsose
                     Console.WriteLine(_dcdHelp);
                     break;
 
-                //case "dcq":
-                //case "DumpConcurrentQueue":
-                //    Console.WriteLine(_dcqHelp);
-                //    break;
+                case "dcq":
+                case "DumpConcurrentQueue":
+                    Console.WriteLine(_dcqHelp);
+                    break;
 
                 default:
                     Console.WriteLine(_help);

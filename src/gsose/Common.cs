@@ -35,7 +35,7 @@ namespace gsose
             var dependency = _dependencies.FirstOrDefault((name) => args.Name.Contains(name));
             if (dependency != null)
             {
-                Console.Write($"Loading {dependency}...");
+                //Console.Write($"Loading {dependency}...");
 
                 string codebase = Assembly.GetExecutingAssembly().CodeBase;
 
@@ -44,7 +44,9 @@ namespace gsose
 
                 string directory = Path.GetDirectoryName(codebase);
                 string path = Path.Combine(directory, dependency) + ".dll";
-                Console.WriteLine($" from {path}");
+
+                //Console.WriteLine($" from {path}");
+
                 return Assembly.LoadFile(path);
             }
 
@@ -80,7 +82,15 @@ namespace gsose
                 Process p = Process.GetCurrentProcess();
                 foreach (ProcessModule module in p.Modules)
                 {
+                    // for .NET Framework
                     if (module.FileName.ToLower().Contains("mscordacwks"))
+                    {
+                        // TODO:  This does not support side-by-side CLRs.
+                        Runtime = DataTarget.ClrVersions.Single().CreateRuntime(module.FileName);
+                        break;
+                    }
+                    // for .NET Core
+                    if (module.FileName.ToLower().Contains("mscordaccore"))
                     {
                         // TODO:  This does not support side-by-side CLRs.
                         Runtime = DataTarget.ClrVersions.Single().CreateRuntime(module.FileName);

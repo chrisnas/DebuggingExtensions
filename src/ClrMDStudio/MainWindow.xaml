@@ -71,7 +71,7 @@
 
         <StackPanel Grid.Row="1" Orientation="Horizontal">
             <TextBlock Text="Local Symbols Cache:" VerticalAlignment="Center" Margin="0,0,3,0"/>
-            <TextBox x:Name="tbSymbolPath" Text="d:\symbols"
+            <TextBox x:Name="tbSymbolPath" Text="c:\symbols"
                      VerticalAlignment="Center" Margin="0,1,1,1" />
         </StackPanel>
     </Grid>

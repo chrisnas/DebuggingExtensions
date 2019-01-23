@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
+using ClrMDStudio;
 using Microsoft.Diagnostics.Runtime;
 using RGiesecke.DllExport;
 
@@ -26,26 +28,42 @@ namespace gsose
                 return;
 
             // parse the command argument
-            if (args.StartsWith("0x"))
+            if (string.IsNullOrEmpty(args))
+            {
+                Console.WriteLine("Missing address of a ConcurrentQueue");
+                return;
+            }
+
+            var arguments = args.Split(' ');
+            var address = arguments[0];
+            if (address.StartsWith("0x"))
             {
                 // remove "0x" for parsing
-                args = args.Substring(2).TrimStart('0');
+                address = address.Substring(2).TrimStart('0');
             }
 
             // remove the leading 0000 that WinDBG often add in 64 bit
-            args = args.TrimStart('0');
+            address = address.TrimStart('0');
 
-            if (!ulong.TryParse(args, System.Globalization.NumberStyles.HexNumber,
-                System.Globalization.CultureInfo.InvariantCulture, out var address))
+            if (!ulong.TryParse(address, System.Globalization.NumberStyles.HexNumber,
+                System.Globalization.CultureInfo.InvariantCulture, out var reference))
             {
                 Console.WriteLine("numeric address value expected");
                 return;
             }
 
-            ShowConcurrentQueue(address);
+            // check parameters
+            // -t: show item type
+            // 
+            var showItemType = false;
+            if (arguments.Length > 1)
+            {
+                showItemType = arguments.Any(arg => arg == "-t");
+            }
+            ShowConcurrentQueue(reference, showItemType);
         }
 
-        private static void ShowConcurrentQueue(ulong address)
+        private static void ShowConcurrentQueue(ulong address, bool showItemType)
         {
             var heap = Runtime.Heap;
             ClrType t = heap.GetObjectType(address);
@@ -57,15 +75,26 @@ namespace gsose
 
             try
             {
+                // different implementations between .NET Core and .NET Framework
+                var helper = new ClrMDHelper(Runtime);
                 var cq = heap.GetProxy(address);
-                var head = cq.m_head;
-
-                // TODO: implement concurrent queue dump
-                Console.WriteLine("Not yet implemented...");
+                int count = 0;
+                foreach (var item in ClrMDHelper.EnumerateConcurrentQueue(cq, helper.IsNetCore()))
+                {
+                    count++;
+                    var itemAddress = (ulong)item;
+                    var type = heap.GetObjectType(itemAddress);
+                    var typeName = (type == null) ? "?" : type.Name;
+                    if (showItemType)
+                        Console.WriteLine($"{count,4} - <link cmd =\"!do {itemAddress:X}\">0x{itemAddress:X16}</link> | {typeName}");
+                    else
+                        Console.WriteLine($"{count,4} - <link cmd =\"!do {itemAddress:X}\">0x{itemAddress:X16}</link>");
+                }
+                //Console.WriteLine("---------------------------------------------" + Environment.NewLine + $"{count} items");
             }
             catch (NullReferenceException)
             {
-                Console.WriteLine("this is not a concurrent dictionary");
+                Console.WriteLine("this is not a ConcurrentQueue");
             }
         }
     }

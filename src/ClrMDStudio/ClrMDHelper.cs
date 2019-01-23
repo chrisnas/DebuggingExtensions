@@ -385,13 +385,20 @@ namespace ClrMDStudio
         public ClrModule GetMscorlib()
         {
             foreach (ClrModule module in _clr.Modules)
-                if (module.AssemblyName.Contains("mscorlib.dll"))
+            {
+                if (string.IsNullOrEmpty(module.AssemblyName))
+                    continue;
+
+                var name = module.AssemblyName.ToLower();
+
+                // in .NET Framework
+                if (name.Contains("mscorlib"))
                     return module;
 
-            // Uh oh, this shouldn't have happened.  Let's look more carefully (slowly).
-            foreach (ClrModule module in _clr.Modules)
-                if (module.AssemblyName.ToLower().Contains("mscorlib"))
+                // in .NET Core
+                if (name.Contains("corelib"))
                     return module;
+            }
 
             // Ok...not sure why we couldn't find it.
             return null;
@@ -400,13 +407,239 @@ namespace ClrMDStudio
 
     #region public API
     #endregion
-        public IEnumerable<ThreadPoolItem> EnumerateGlobalThreadPoolItems()
+        public static IEnumerable<(dynamic key, dynamic value)> EnumerateConcurrentDictionary(dynamic concurrentDictionary, bool isNetCore)
         {
-            // look for the ThreadPoolGlobals.workQueue static field
+            return (isNetCore) ? EnumerateConcurrentDictionaryCore(concurrentDictionary) : EnumerateConcurrentDictionaryFramework(concurrentDictionary);
+        }
+
+        private static IEnumerable<(dynamic key, dynamic value)> EnumerateConcurrentDictionaryCore(dynamic concurrentDictionary)
+        {
+            var buckets = concurrentDictionary._tables._buckets;
+            foreach (var bucket in buckets)
+            {
+                if (bucket == null) continue;
+
+                var key = bucket._key;
+                var value = bucket._value;
+
+                yield return (key, value);
+            }
+        }
+
+        private static IEnumerable<(dynamic key, dynamic value)> EnumerateConcurrentDictionaryFramework(dynamic concurrentDictionary)
+        {
+            var buckets = concurrentDictionary.m_tables.m_buckets;
+            foreach (var bucket in buckets)
+            {
+                if (bucket == null) continue;
+
+                var key = bucket.m_key;
+                var value = bucket.m_value;
+
+                yield return (key, value);
+            }
+        }
+
+
+        public static IEnumerable<dynamic> EnumerateConcurrentQueue(dynamic concurrentQueue, bool isNetCore)
+        {
+            return (isNetCore) ? EnumerateConcurrentQueueCore(concurrentQueue) : EnumerateConcurrentQueueFramework(concurrentQueue);
+        }
+
+        public static IEnumerable<dynamic> EnumerateConcurrentQueueFramework(dynamic concurrentQueue)
+        {
+            var currentSegment = concurrentQueue.m_head;
+            while (currentSegment != null)
+            {
+                // a segment contains an array of T stored in m_array
+                var items = currentSegment.m_array;
+                var count = items.Length;
+                for (int current = 0; current < count; current++)
+                {
+                    var item = items[current];
+                    if (item == null)
+                        continue;
+
+                    yield return item;
+                }
+
+                currentSegment = currentSegment.m_next;
+            }
+        }
+
+        public static IEnumerable<dynamic> EnumerateConcurrentQueueCore(dynamic concurrentQueue)
+        {
+            var currentSegment = concurrentQueue._head;
+            while (currentSegment != null)
+            {
+                // a segment contains an array of T stored in _slots
+                var slots = currentSegment._slots;
+                var count = slots.Length;
+                for (int current = 0; current < count; current++)
+                {
+                    var slot = slots[current];
+                    if (slot == null)
+                        continue;
+
+                    var item = slot.Item;
+                    if (item == null)
+                        continue;
+
+                    yield return item;
+                }
+
+                currentSegment = currentSegment._nextSegment;
+            }
+        }
+
+        public bool IsNetCore()
+        {
+            var coreLib = GetMscorlib();
+            if (coreLib == null)
+                throw new InvalidOperationException("Impossible to find core library");
+
+            return (coreLib.FileName.ToLower().Contains("corelib"));
+        }
+
+       public IEnumerable<ThreadPoolItem> EnumerateGlobalThreadPoolItems()
+        {
             ClrModule mscorlib = GetMscorlib();
             if (mscorlib == null)
-                throw new InvalidOperationException("Impossible to find mscorlib.dll");
+                throw new InvalidOperationException("Impossible to find core library");
 
+            // switch when .NET Core implementation
+            if (mscorlib.FileName.ToLower().Contains("corelib"))
+            {
+                return EnumerateGlobalThreadPoolItemsInNetCore(mscorlib);
+            }
+            else
+            {
+                return EnumerateGlobalThreadPoolItemsInNetFramework(mscorlib);
+            }
+        }
+
+        public IEnumerable<ThreadPoolItem> EnumerateLocalThreadPoolItems()
+        {
+            ClrModule mscorlib = GetMscorlib();
+            if (mscorlib == null)
+                throw new InvalidOperationException("Impossible to find core library");
+
+            // switch when .NET Core implementation
+            if (mscorlib.FileName.ToLower().Contains("corelib"))
+            {
+                return EnumerateLocalThreadPoolItemsInNetCore(mscorlib);
+            }
+            else
+            {
+                return EnumerateLocalThreadPoolItemsInNetFramework(mscorlib);
+            }
+
+        }
+
+
+        // here is the code to enumerate thread pool items from ThreadPool.cs
+        //      internal static IEnumerable<IThreadPoolWorkItem> GetQueuedWorkItems()
+        //      {
+        //          // Enumerate global queue
+        //          foreach (IThreadPoolWorkItem workItem in ThreadPoolGlobals.workQueue.workItems)
+        //          {
+        //              yield return workItem;
+        //          }
+        //
+        //          // Enumerate each local queue
+        //          foreach (ThreadPoolWorkQueue.WorkStealingQueue wsq in ThreadPoolWorkQueue.WorkStealingQueueList.Queues)
+        //          {
+        //              if (wsq != null && wsq.m_array != null)
+        //              {
+        //                  IThreadPoolWorkItem[] items = wsq.m_array;
+        //                  for (int i = 0; i < items.Length; i++)
+        //                  {
+        //                      IThreadPoolWorkItem item = items[i];
+        //                      if (item != null)
+        //                      {
+        //                          yield return item;
+        //                      }
+        //                  }
+        //              }
+        //          }
+        //      }
+        // 
+        // unfortunately, we can't access static fields value with ClrMD yet
+        // so we need to look for instances in the whole heap
+        //
+        private IEnumerable<ThreadPoolItem> EnumerateGlobalThreadPoolItemsInNetCore(ClrModule mscorlib)
+        {
+            // in .NET Core, global queue is stored in ThreadPoolGlobals.workQueue (a ThreadPoolWorkQueue)
+            // and each thread has a dedicated WorkStealingQueue stored in WorkStealingQueueList._queues (a WorkStealingQueue[])
+            // 
+            // until we can access static fields values in .NET Core with ClrMD, we need to browse the whole heap...
+            var heap = _clr.Heap;
+            if (!heap.CanWalkHeap)
+                yield break;
+
+            foreach (var objAddress in heap.EnumerateObjectAddresses())
+            {
+                var type = heap.GetObjectType(objAddress);
+                if (type == null)
+                    continue;
+
+                if (type.Name == "System.Threading.ThreadPoolWorkQueue")
+                {
+                    var workQueue = heap.GetProxy(objAddress);
+                    var workItems = workQueue.workItems;
+                    foreach (var workItem in EnumerateConcurrentQueueCore(workItems))
+                    {
+                        yield return GetThreadPoolItem(workItem);
+                    }
+                    break;
+                }
+            }
+        }
+
+        private IEnumerable<ThreadPoolItem> EnumerateLocalThreadPoolItemsInNetCore(ClrModule corelib)
+        {
+            // in .NET Core, each thread has a dedicated WorkStealingQueue stored in WorkStealingQueueList._queues (a WorkStealingQueue[])
+            // 
+            // until we can access static fields values in .NET Core with ClrMD, we need to browse the whole heap...
+            var heap = _clr.Heap;
+            if (!heap.CanWalkHeap)
+                yield break;
+
+            foreach (var objAddress in heap.EnumerateObjectAddresses())
+            {
+                var type = heap.GetObjectType(objAddress);
+                if (type == null)
+                    continue;
+
+                if (type.Name == "System.Threading.ThreadPoolWorkQueue+WorkStealingQueue")
+                {
+                    var stealingQueue = heap.GetProxy(objAddress);
+                    var workItems = stealingQueue.m_array;
+                    if (workItems == null)
+                        continue;
+
+                    for (int current = 0; current < workItems.Length; current++)
+                    {
+                        var workItem = workItems[current];
+                        if (workItem == null)
+                            continue;
+
+                        yield return GetThreadPoolItem(workItem);
+                    }
+                }
+            }
+        }
+
+
+        // The ThreadPool is keeping track of the pending work items into two different areas:
+        // - a global queue: stored by ThreadPoolWorkQueue instances of the ThreadPoolGlobals.workQueue static field
+        // - several per thread (TLS) local queues: stored in SparseArray<ThreadPoolWorkQueue+WorkStealingQueue> linked from ThreadPoolWorkQueue.allThreadQueues static fields
+        // both are using arrays of Task or QueueUserWorkItemCallback
+        //
+        // NOTE: don't show other thread pool related topics such as timer callbacks or wait objects
+        //
+        private IEnumerable<ThreadPoolItem> EnumerateGlobalThreadPoolItemsInNetFramework(ClrModule mscorlib)
+        {
             ClrType queueType = mscorlib.GetTypeByName("System.Threading.ThreadPoolGlobals");
             if (queueType == null)
                 yield break;
@@ -436,9 +669,14 @@ namespace ClrMDStudio
                 }
             }
         }
-        public IEnumerable<ThreadPoolItem> EnumerateLocalThreadPoolItems()
+
+        private IEnumerable<ThreadPoolItem> EnumerateLocalThreadPoolItemsInNetFramework(ClrModule mscorlib)
         {
-            var queueType = GetMscorlib().GetTypeByName("System.Threading.ThreadPoolWorkQueue");
+            // look into the local stealing queues in each thread TLS
+            // hopefully, they are all stored in static (one per app domain) instance
+            // of ThreadPoolWorkQueue.SparseArray<ThreadPoolWorkQueue.WorkStealingQueue>
+            //
+            var queueType = mscorlib.GetTypeByName("System.Threading.ThreadPoolWorkQueue");
             if (queueType == null)
                 yield break;
 
@@ -753,95 +991,177 @@ namespace ClrMDStudio
         }
         public IEnumerable<TimerInfo> EnumerateTimers()
         {
+            // the implementation is different between .NET Framework/.NET Core 2.0 and .NET Core 2.1/2.2
+            // - the former is relying on a single static TimerQueue.s_queue 
+            // - the latter uses an array of TimerQueue (static TimerQueue.Instances field)
+            // - TODO: the next version 2.2+ seems to have another implementation based on long/short timers
+            // each queue refers to TimerQueueTimer linked list via its m_timers field
+            //
             var timerQueueType = GetMscorlib().GetTypeByName("System.Threading.TimerQueue");
             if (timerQueueType == null)
                 yield break;
 
-            ClrStaticField instanceField = timerQueueType.GetStaticFieldByName("s_queue");
-            if (instanceField == null)
-                yield break;
-
-            foreach (ClrAppDomain domain in _clr.AppDomains)
+            // .NET Core 2.1/2.2 case
+            ClrStaticField instancesField = timerQueueType.GetStaticFieldByName("<Instances>k__BackingField");
+            if (instancesField != null)
             {
-                ulong? timerQueue = (ulong?)instanceField.GetValue(domain);
-                if (!timerQueue.HasValue || timerQueue.Value == 0)
-                    continue;
+                // should have only 1 app domain in .NET Core
+                // ... but it is not working: GetValue returns null
+                //foreach (ClrAppDomain domain in _clr.AppDomains)
+                //{
+                //    var address = instancesField.GetAddress(domain);
+                //    ulong? timerQueues = (ulong?) instancesField.GetValue(domain);
+                //    if (!timerQueues.HasValue || timerQueues.Value == 0)
+                //        continue;
 
-                ClrType t = _heap.GetObjectType(timerQueue.Value);
-                if (t == null)
-                    continue;
+                //    ClrType t = _heap.GetObjectType(timerQueues.Value);
+                //    if (t == null)
+                //        continue;
 
-                // m_timers is the start of the list of TimerQueueTimer
-                var currentPointer = GetFieldValue(timerQueue.Value, "m_timers");
+                //    if (!t.IsArray)
+                //        continue;
 
-                while ((currentPointer != null) && (((ulong)currentPointer) != 0))
+                //    var numberOfQueues = t.GetArrayLength(timerQueues.Value);
+                //    for (int currentQueue = 0; currentQueue < numberOfQueues; currentQueue++)
+                //    {
+                //        var queueAddress = t.GetArrayElementAddress(timerQueues.Value, currentQueue);
+
+                //        // m_timers is the start of the list of TimerQueueTimer
+                //        var currentPointer = GetFieldValue(queueAddress, "m_timers");
+
+                //        while ((currentPointer != null) && (((ulong)currentPointer) != 0))
+                //        {
+                //            // currentPointer points to a TimerQueueTimer instance
+                //            ulong currentTimerQueueTimerRef = (ulong)currentPointer;
+
+                //            var ti = GetTimerInfo(currentTimerQueueTimerRef);
+                //            currentPointer = GetFieldValue(currentTimerQueueTimerRef, "m_next");
+                //            if (ti == null)
+                //                continue;
+
+                //            yield return ti;
+                //        }
+                //    }
+                //}
+
+                // until the ClrMD bug to get static field value is fixed, iterate on each object of the heap
+                // to find each TimerQueue and iterate on 
+                foreach (var timerQueue in _heap.GetProxies("System.Threading.TimerQueue"))
                 {
-                    // currentPointer points to a TimerQueueTimer instance
-                    ulong currentTimerQueueTimerRef = (ulong)currentPointer;
+                    var timerQueueTimer = timerQueue.m_timers;
+                    while (timerQueueTimer != null)
+                    {
+                        var ti = GetTimerInfo((ulong)timerQueueTimer);
+                        timerQueueTimer = timerQueueTimer.m_next;
 
-                    TimerInfo ti = new TimerInfo()
-                    {
-                        TimerQueueTimerAddress = currentTimerQueueTimerRef
-                    };
-
-                    var val = GetFieldValue(currentTimerQueueTimerRef, "m_dueTime");
-                    ti.DueTime = (uint)val;
-                    val = GetFieldValue(currentTimerQueueTimerRef, "m_period");
-                    ti.Period = (uint)val;
-                    val = GetFieldValue(currentTimerQueueTimerRef, "m_canceled");
-                    ti.Cancelled = (bool)val;
-                    val = GetFieldValue(currentTimerQueueTimerRef, "m_state");
-                    ti.StateTypeName = "";
-                    if (val == null)
-                    {
-                        ti.StateAddress = 0;
-                    }
-                    else
-                    {
-                        ti.StateAddress = (ulong)val;
-                        var stateType = _heap.GetObjectType(ti.StateAddress);
-                        if (stateType != null)
-                        {
-                            ti.StateTypeName = stateType.Name;
-                        }
-                    }
-
-                    // decypher the callback details
-                    val = GetFieldValue(currentTimerQueueTimerRef, "m_timerCallback");
-                    if (val != null)
-                    {
-                        ulong elementAddress = (ulong)val;
-                        if (elementAddress == 0)
+                        if (ti == null)
                             continue;
 
-                        var elementType = _heap.GetObjectType(elementAddress);
-                        if (elementType != null)
-                        {
-                            if (elementType.Name == "System.Threading.TimerCallback")
-                            {
-                                ti.MethodName = BuildTimerCallbackMethodName(elementAddress);
-                            }
-                            else
-                            {
-                                ti.MethodName = "<" + elementType.Name + ">";
-                            }
-                        }
-                        else
-                        {
-                            ti.MethodName = "{no callback type?}";
-                        }
+                        yield return ti;
                     }
-                    else
+                }
+            }
+            else
+            {
+                // .NET Framework implementation
+                ClrStaticField instanceField = timerQueueType.GetStaticFieldByName("s_queue");
+                if (instanceField == null)
+                    yield break;
+
+                foreach (ClrAppDomain domain in _clr.AppDomains)
+                {
+                    ulong? timerQueue = (ulong?)instanceField.GetValue(domain);
+                    if (!timerQueue.HasValue || timerQueue.Value == 0)
+                        continue;
+
+                    ClrType t = _heap.GetObjectType(timerQueue.Value);
+                    if (t == null)
+                        continue;
+
+                    // m_timers is the start of the list of TimerQueueTimer
+                    var currentPointer = GetFieldValue(timerQueue.Value, "m_timers");
+
+                    while ((currentPointer != null) && (((ulong)currentPointer) != 0))
                     {
-                        ti.MethodName = "???";
+                        // currentPointer points to a TimerQueueTimer instance
+                        ulong currentTimerQueueTimerRef = (ulong)currentPointer;
+
+                        var ti = GetTimerInfo(currentTimerQueueTimerRef);
+                        if (ti == null)
+                            continue;
+
+                        yield return ti;
+
+                        currentPointer = GetFieldValue(currentTimerQueueTimerRef, "m_next");
                     }
-
-                    yield return ti;
-
-                    currentPointer = GetFieldValue(currentTimerQueueTimerRef, "m_next");
                 }
             }
         }
+
+        private TimerInfo GetTimerInfo(ulong currentTimerQueueTimerRef)
+        {
+            TimerInfo ti = new TimerInfo()
+            {
+                TimerQueueTimerAddress = currentTimerQueueTimerRef
+            };
+
+            var val = GetFieldValue(currentTimerQueueTimerRef, "m_dueTime");
+            ti.DueTime = (uint)val;
+            val = GetFieldValue(currentTimerQueueTimerRef, "m_period");
+            ti.Period = (uint)val;
+            val = GetFieldValue(currentTimerQueueTimerRef, "m_canceled");
+            ti.Cancelled = (bool)val;
+            val = GetFieldValue(currentTimerQueueTimerRef, "m_state");
+            ti.StateTypeName = "";
+            if (val == null)
+            {
+                ti.StateAddress = 0;
+            }
+            else
+            {
+                ti.StateAddress = (ulong)val;
+                var stateType = _heap.GetObjectType(ti.StateAddress);
+                if (stateType != null)
+                {
+                    ti.StateTypeName = stateType.Name;
+                }
+            }
+
+            // decypher the callback details
+            val = GetFieldValue(currentTimerQueueTimerRef, "m_timerCallback");
+            if (val != null)
+            {
+                ulong elementAddress = (ulong)val;
+                if (elementAddress == 0)
+                    return null;
+
+                var elementType = _heap.GetObjectType(elementAddress);
+                if (elementType != null)
+                {
+                    if (elementType.Name == "System.Threading.TimerCallback")
+                    {
+                        ti.MethodName = BuildTimerCallbackMethodName(elementAddress);
+                    }
+                    else
+                    {
+                        ti.MethodName = "<" + elementType.Name + ">";
+                    }
+                }
+                else
+                {
+                    ti.MethodName = "{no callback type?}";
+                }
+            }
+            else
+            {
+                ti.MethodName = "???";
+            }
+
+
+            return ti;
+        }
+
+
         public Dictionary<string, int> ComputeDuplicatedStrings()
         {
             Dictionary<string, int> strings = new Dictionary<string, int>(1024 * 1024);
@@ -1102,7 +1422,9 @@ namespace ClrMDStudio
             {
                 return GetTask(item);
             }
-            else if (itemType.Name == "System.Threading.QueueUserWorkItemCallback")
+            else if ((itemType.Name == "System.Threading.QueueUserWorkItemCallback") ||
+                     // new to .NET Core 
+                     (itemType.Name == "System.Threading.QueueUserWorkItemCallbackDefaultContext"))
             {
                 return GetQueueUserWorkItemCallback(item);
             }
@@ -1163,7 +1485,13 @@ namespace ClrMDStudio
             };
 
             // look for the callback given to ThreadPool.QueueUserWorkItem()
-            var callback = element.callback;
+            // for .NET Core, System.Threading.QueueUserWorkItemCallbackDefaultContext the callback is stored 
+            // with a different field _callback
+            var elementType = element.GetClrType();
+
+            var callback = (elementType.Name == "System.Threading.QueueUserWorkItemCallbackDefaultContext") 
+                ? element._callback
+                : element.callback;
             if (callback == null)
             {
                 tpi.MethodName = "[no callback]";
