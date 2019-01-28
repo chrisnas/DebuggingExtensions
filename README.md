@@ -2,7 +2,9 @@
 The few "debugging extensions" that have been created at Criteo to help post-mortem .NET applications analysis are now available:
 
 - as a [stand alone tool](./Documentation/ClrMDStudio.md) to load a .NET application memory dump and start automatic thread, thread pool, tasks and timer analysis.
+   [zip](./binaries/ClrMDStudio-1.5_x64.zip)
 - as a [WinDBG extension](./Documentation/gsose.md) to get the same level of details plus more commands such as getting a method signature based on its address.
+   [zip](./binaries/gsose-1.5_x64.zip)
 
 More analyzers and commands will be added as needed.
 
@@ -41,7 +43,6 @@ The `DebuggingExtensions` Visual Studio 2017 solution contains two projects:
 1. `ClrMDStudio`: WPF application that loads a dump file on which commands to be executed 
 
 2. `gsose`: "***G**rand **S**on **O**f **S**trike **E**xtension*" for WinDBG that exposes the same commands (and more)
-
 
 
 These projects depends on Nuget packages:
