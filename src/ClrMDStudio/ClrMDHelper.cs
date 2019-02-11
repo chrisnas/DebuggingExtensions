@@ -1485,13 +1485,13 @@ namespace ClrMDStudio
             };
 
             // look for the callback given to ThreadPool.QueueUserWorkItem()
-            // for .NET Core, System.Threading.QueueUserWorkItemCallbackDefaultContext the callback is stored 
-            // with a different field _callback
-            var elementType = element.GetClrType();
-
-            var callback = (elementType.Name == "System.Threading.QueueUserWorkItemCallbackDefaultContext") 
+            // for .NET Core, the callback is stored in a different field _callback
+            ClrType elementType = element.GetClrType();
+            var callback = (elementType.GetFieldByName("_callback") != null)
                 ? element._callback
-                : element.callback;
+                : (elementType.GetFieldByName("callback") != null)
+                    ? element.callback
+                    : null;
             if (callback == null)
             {
                 tpi.MethodName = "[no callback]";
