@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using ClrMDExports;
+using Microsoft.Diagnostics.Runtime;
 using RGiesecke.DllExport;
 
 namespace gsose
@@ -9,12 +11,12 @@ namespace gsose
         [DllExport("Help")]
         public static void Help(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnHelp(client, args);
+            DebuggingContext.Execute(client, args, OnHelp);
         }
         [DllExport("help")]
         public static void help(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnHelp(client, args);
+            DebuggingContext.Execute(client, args, OnHelp);
         }
 
         const string _help =
@@ -251,12 +253,8 @@ namespace gsose
             "   5 - 0x000001D10DF5B480 | NetCoreConsoleApp.InstanceInConcurrentDataStructures\r\n" +
             "\r\n";
         //
-        private static void OnHelp(IntPtr client, string args)
+        private static void OnHelp(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             string command = args;
             if (args != null)
                 command = args.ToLower();

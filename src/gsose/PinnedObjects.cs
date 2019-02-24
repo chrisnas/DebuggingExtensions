@@ -4,6 +4,7 @@ using RGiesecke.DllExport;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ClrMDExports;
 
 namespace gsose
 {
@@ -12,25 +13,21 @@ namespace gsose
         [DllExport("po")]
         public static void po(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnPinnedObjects(client, args);
+            DebuggingContext.Execute(client, args, OnPinnedObjects);
         }
         [DllExport("pinnedobjects")]
         public static void pinnedobjects(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnPinnedObjects(client, args);
+            DebuggingContext.Execute(client, args, OnPinnedObjects);
         }
         [DllExport("PinnedObjects")]
         public static void PinnedObjects(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnPinnedObjects(client, args);
+            DebuggingContext.Execute(client, args, OnPinnedObjects);
         }
 
-        private static void OnPinnedObjects(IntPtr client, string args)
+        private static void OnPinnedObjects(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             int minInstanceCount;
             if (!int.TryParse(args, out minInstanceCount))
                 minInstanceCount = 1;
@@ -38,11 +35,11 @@ namespace gsose
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrHeap heap = Runtime.Heap;
+            ClrHeap heap = runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
-            ClrMDHelper helper = new ClrMDHelper(Runtime);
+            ClrMDHelper helper = new ClrMDHelper(runtime);
 
             try
             {

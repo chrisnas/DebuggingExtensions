@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ClrMDExports;
 using Microsoft.Diagnostics.Runtime;
 using RGiesecke.DllExport;
 
@@ -13,17 +14,17 @@ namespace gsose
         [DllExport("ti")]
         public static void ti(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTimerInfo(client, args);
+            DebuggingContext.Execute(client, args, OnTimerInfo);
         }
         [DllExport("timerinfo")]
         public static void timerinfo(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTimerInfo(client, args);
+            DebuggingContext.Execute(client, args, OnTimerInfo);
         }
         [DllExport("TimerInfo")]
         public static void TimerInfo(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTimerInfo(client, args);
+            DebuggingContext.Execute(client, args, OnTimerInfo);
         }
 
 
@@ -34,20 +35,16 @@ namespace gsose
             public int Count { get; set; }
         }
 
-        private static void OnTimerInfo(IntPtr client, string args)
+        private static void OnTimerInfo(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrHeap heap = Runtime.Heap;
+            ClrHeap heap = runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
-            ClrMDHelper helper = new ClrMDHelper(Runtime);
+            ClrMDHelper helper = new ClrMDHelper(runtime);
 
             try
             {

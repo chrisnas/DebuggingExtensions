@@ -1,8 +1,8 @@
 ﻿using ClrMDStudio;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ClrMDExports;
 using Microsoft.Diagnostics.Runtime;
 using RGiesecke.DllExport;
 
@@ -13,33 +13,29 @@ namespace gsose
         [DllExport("sd")]
         public static void sd(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnStringDuplicates(client, args);
+            DebuggingContext.Execute(client, args, OnStringDuplicates);
         }
         [DllExport("stringduplicates")]
         public static void stringduplicates(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnStringDuplicates(client, args);
+            DebuggingContext.Execute(client, args, OnStringDuplicates);
         }
         [DllExport("StringDuplicates")]
         public static void StringDuplicates(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnStringDuplicates(client, args);
+            DebuggingContext.Execute(client, args, OnStringDuplicates);
         }
 
-        private static void OnStringDuplicates(IntPtr client, string args)
+        private static void OnStringDuplicates(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrHeap heap = Runtime.Heap;
+            ClrHeap heap = runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
-            ClrMDHelper helper = new ClrMDHelper(Runtime);
+            ClrMDHelper helper = new ClrMDHelper(runtime);
 
             // extract the threshold (= min number of duplicates from which a string appears in the list)
             int minCountThreshold = 100;

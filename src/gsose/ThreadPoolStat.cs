@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using ClrMDExports;
 using Microsoft.Diagnostics.Runtime;
 using RGiesecke.DllExport;
 
@@ -14,24 +15,20 @@ namespace gsose
         [DllExport("tpq")]
         public static void tpq(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTpQueues(client, args);
+            DebuggingContext.Execute(client, args, OnTpQueues);
         }
         [DllExport("tpQueues")]
         public static void tpQueues(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTpQueues(client, args);
+            DebuggingContext.Execute(client, args, OnTpQueues);
         }
         [DllExport("tpqueues")]
         public static void tpqueues(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTpQueues(client, args);
+            DebuggingContext.Execute(client, args, OnTpQueues);
         }
-        public static void OnTpQueues(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
+        public static void OnTpQueues(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             Dictionary<string, WorkInfo> _workItems = new Dictionary<string, WorkInfo>();
             int _workItemCount = 0;
             Dictionary<string, WorkInfo> _tasks = new Dictionary<string, WorkInfo>();
@@ -40,12 +37,12 @@ namespace gsose
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrThreadPool threadPool = Runtime.ThreadPool;
-            ClrHeap heap = Runtime.Heap;
+            ClrThreadPool threadPool = runtime.ThreadPool;
+            ClrHeap heap = runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
-            ClrMDHelper helper = new ClrMDHelper(Runtime);
+            ClrMDHelper helper = new ClrMDHelper(runtime);
 
             // The ThreadPool is keeping track of the pending work items into two different areas:
             // - a global queue
@@ -141,33 +138,29 @@ namespace gsose
         [DllExport("tpr")]
         public static void tpr(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTpRunning(client, args);
+            DebuggingContext.Execute(client, args, OnTpRunning);
         }
         [DllExport("tpRunning")]
         public static void tpRunning(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTpRunning(client, args);
+            DebuggingContext.Execute(client, args, OnTpRunning);
         }
         [DllExport("tprunning")]
         public static void tprunning(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTpRunning(client, args);
+            DebuggingContext.Execute(client, args, OnTpRunning);
         }
-        private static void OnTpRunning(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
+        private static void OnTpRunning(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrThreadPool threadPool = Runtime.ThreadPool;
-            ClrHeap heap = Runtime.Heap;
+            ClrThreadPool threadPool = runtime.ThreadPool;
+            ClrHeap heap = runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
-            ClrMDHelper helper = new ClrMDHelper(Runtime);
+            ClrMDHelper helper = new ClrMDHelper(runtime);
 
 
             try
@@ -178,12 +171,12 @@ namespace gsose
                     threadPool.TotalThreads.ToString(),
                     threadPool.IdleThreads.ToString(),
                     threadPool.RunningThreads.ToString(),
-                    Runtime.Threads.Count(t => t.IsThreadpoolWorker && !t.IsThreadpoolCompletionPort && !t.IsAlive && !t.IsThreadpoolGate && !t.IsThreadpoolTimer && !t.IsThreadpoolWait).ToString(),
+                    runtime.Threads.Count(t => t.IsThreadpoolWorker && !t.IsThreadpoolCompletionPort && !t.IsAlive && !t.IsThreadpoolGate && !t.IsThreadpoolTimer && !t.IsThreadpoolWait).ToString(),
                     threadPool.MaxThreads.ToString()
                 ));
 
                 // show the running worker threads
-                DumpRunningThreadpoolThreads(helper);
+                DumpRunningThreadpoolThreads(runtime, helper);
             }
             catch (Exception x)
             {
@@ -203,15 +196,15 @@ namespace gsose
             public int Count { get; set; }
         }
 
-        private static void DumpRunningThreadpoolThreads(ClrMDHelper helper)
+        private static void DumpRunningThreadpoolThreads(ClrRuntime runtime, ClrMDHelper helper)
         {
             Dictionary<string, ThreadDistributionItem> distribution = new Dictionary<string, ThreadDistributionItem>(8 * 1024);
 
             Console.WriteLine("\r\n  ID ThreadOBJ        Locks  Details");
             Console.WriteLine("-----------------------------------------------------------------------------------");
-            foreach (var thread in Runtime.Threads.Where(t => t.IsThreadpoolWorker).OrderBy(t => (t.LockCount > 0) ? -1 : (!t.IsAlive ? t.ManagedThreadId + 10000 : t.ManagedThreadId)))
+            foreach (var thread in runtime.Threads.Where(t => t.IsThreadpoolWorker).OrderBy(t => (t.LockCount > 0) ? -1 : (!t.IsAlive ? t.ManagedThreadId + 10000 : t.ManagedThreadId)))
             {
-                string details = string.Intern(GetCallStackInfo(helper, thread));
+                string details = string.Intern(GetCallStackInfo(runtime, helper, thread));
 
                 if (thread.IsAlive)
                 {
@@ -267,7 +260,7 @@ namespace gsose
             }
 
         }
-        private static string GetCallStackInfo(ClrMDHelper helper, ClrThread thread)
+        private static string GetCallStackInfo(ClrRuntime runtime, ClrMDHelper helper, ClrThread thread)
         {
             // must be a running thread
             if (!thread.IsAlive)
@@ -308,7 +301,7 @@ namespace gsose
                 string shortTypeName = "";
                 if (bi.ObjRef != 0)
                 {
-                    ClrType type = Runtime.Heap.GetObjectType(bi.ObjRef);
+                    ClrType type = runtime.Heap.GetObjectType(bi.ObjRef);
                     if (type != null)
                     {
                         string typeName = type.Name;

@@ -4,7 +4,7 @@ The few "debugging extensions" that have been created at Criteo to help post-mor
 - as a [stand alone tool](./Documentation/ClrMDStudio.md) to load a .NET application memory dump and start automatic thread, thread pool, tasks and timer analysis.
    [zip](./binaries/ClrMDStudio-1.5.1_x64.zip)
 - as a [WinDBG extension](./Documentation/gsose.md) to get the same level of details plus more commands such as getting a method signature based on its address.
-   [zip](./binaries/gsose-1.5.1_x64.zip)
+   [zip](./binaries/gsose-1.5.2_x64.zip)
 
 More analyzers and commands will be added as needed.
 

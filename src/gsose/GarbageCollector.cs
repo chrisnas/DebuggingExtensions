@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using ClrMDExports;
+using Microsoft.Diagnostics.Runtime;
 
 namespace gsose
 {
@@ -13,26 +15,22 @@ namespace gsose
         [DllExport("gci")]
         public static void gci(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnGCInfo(client, args);
+            DebuggingContext.Execute(client, args, OnGCInfo);
         }
         [DllExport("gcinfo")]
         public static void gcinfo(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnGCInfo(client, args);
+            DebuggingContext.Execute(client, args, OnGCInfo);
         }
         [DllExport("GCInfo")]
         public static void GCInfo(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnGCInfo(client, args);
+            DebuggingContext.Execute(client, args, OnGCInfo);
         }
 
-        private static void OnGCInfo(IntPtr client, string args)
+        private static void OnGCInfo(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
-            var helper = new ClrMDHelper(Runtime);
+            var helper = new ClrMDHelper(runtime);
             var segments = helper.ComputeGCSegments();
 
             ListGenerations(segments);

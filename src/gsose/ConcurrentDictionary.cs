@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ClrMDExports;
 using ClrMDStudio;
 using Microsoft.Diagnostics.Runtime;
 using RGiesecke.DllExport;
@@ -12,21 +13,17 @@ namespace gsose
         [DllExport("dcd")]
         public static void dcd(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnDumpConcurrentDictionary(client, args);
+            DebuggingContext.Execute(client, args, OnDumpConcurrentDictionary);
         }
 
         [DllExport("DumpConcurrentDictionary")]
         public static void DumpConcurrentDictionary(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnDumpConcurrentDictionary(client, args);
+            DebuggingContext.Execute(client, args, OnDumpConcurrentDictionary);
         }
 
-        public static void OnDumpConcurrentDictionary(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
+        public static void OnDumpConcurrentDictionary(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             // parse the command argument
             if (args.StartsWith("0x"))
             {
@@ -44,12 +41,12 @@ namespace gsose
                 return;
             }
 
-            ShowConcurrentDictionary(address);
+            ShowConcurrentDictionary(runtime, address);
         }
 
-        private static void ShowConcurrentDictionary(ulong address)
+        private static void ShowConcurrentDictionary(ClrRuntime runtime, ulong address)
         {
-            var heap = Runtime.Heap;
+            var heap = runtime.Heap;
             ClrType t = heap.GetObjectType(address);
             if (t == null)
             {
@@ -60,7 +57,7 @@ namespace gsose
             try
             {
                 // different implementations between .NET Core and .NET Framework
-                var helper = new ClrMDHelper(Runtime);
+                var helper = new ClrMDHelper(runtime);
 
                 var cd = heap.GetProxy(address);
                 Console.WriteLine($"{cd.GetClrType().Name}");

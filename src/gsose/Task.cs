@@ -3,6 +3,7 @@ using RGiesecke.DllExport;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using ClrMDExports;
 using ClrMDStudio;
 
 namespace gsose
@@ -13,27 +14,24 @@ namespace gsose
         [DllExport("tks")]
         public static void tks(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTkState(client, args);
+            DebuggingContext.Execute(client, args, OnTkState);
         }
         [DllExport("tkstate")]
         public static void tkstate(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTkState(client, args);
+            DebuggingContext.Execute(client, args, OnTkState);
         }
         [DllExport("tkState")]
         public static void tkState(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnTkState(client, args);
+            DebuggingContext.Execute(client, args, OnTkState);
         }
-        public static void OnTkState(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
+        public static void OnTkState(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             // parse the command argument
             ulong address;
             ulong stateFlag;
+            var heap = runtime.Heap;
 
             if (args.StartsWith("0x"))
             {
@@ -45,7 +43,7 @@ namespace gsose
                     return;
                 }
 
-                stateFlag = GetTaskStateFromAddress(address);
+                stateFlag = GetTaskStateFromAddress(heap, address);
                 if (stateFlag == 0)
                 {
                     Console.WriteLine("either a task address or a valid StateFlag expected");
@@ -65,7 +63,7 @@ namespace gsose
                     }
 
                     // check if it is a task address
-                    stateFlag = GetTaskStateFromAddress(address);
+                    stateFlag = GetTaskStateFromAddress(heap, address);
                     if (stateFlag == 0)
                     {
                         // otherwise, it might be a valid StateFlag
@@ -75,7 +73,7 @@ namespace gsose
                 else
                 {
                     // check if it is a task address
-                    stateFlag = GetTaskStateFromAddress(address);
+                    stateFlag = GetTaskStateFromAddress(heap, address);
                     if (stateFlag == 0)
                     {
                         // otherwise, it might be a valid StateFlag
@@ -102,32 +100,28 @@ namespace gsose
         [DllExport("gmn")]
         public static void gmn(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnGetMethodName(client, args);
+            DebuggingContext.Execute(client, args, OnGetMethodName);
         }
         [DllExport("getMethodName")]
         public static void getMethodName(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnGetMethodName(client, args);
+            DebuggingContext.Execute(client, args, OnGetMethodName);
         }
         [DllExport("getmethodname")]
         public static void getmethodname(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnGetMethodName(client, args);
+            DebuggingContext.Execute(client, args, OnGetMethodName);
         }
-        private static void OnGetMethodName(IntPtr client, string args)
+        private static void OnGetMethodName(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             // Use ClrMD as normal, but ONLY cache the copy of ClrRuntime (this.Runtime).  All other
             // types you get out of ClrMD (such as ClrHeap, ClrTypes, etc) should be discarded and
             // reobtained every run.
-            ClrHeap heap = Runtime.Heap;
+            ClrHeap heap = runtime.Heap;
 
             // Console.WriteLine now writes to the debugger.
 
-            ClrMDHelper helper = new ClrMDHelper(Runtime);
+            ClrMDHelper helper = new ClrMDHelper(runtime);
 
             try
             {
@@ -139,7 +133,7 @@ namespace gsose
                 }
 
 
-                ClrMethod method = Runtime.GetMethodByAddress(methodPtr);
+                ClrMethod method = runtime.GetMethodByAddress(methodPtr);
                 if (method != null)
                 {
                     Console.WriteLine($"{method.Type.Name}.{method.Name}");
@@ -156,9 +150,9 @@ namespace gsose
         }
 
 
-        private static ulong GetTaskStateFromAddress(ulong address)
+        private static ulong GetTaskStateFromAddress(ClrHeap heap, ulong address)
         {
-            var type = Runtime.Heap.GetObjectType(address);
+            var type = heap.GetObjectType(address);
             if ((type != null) && (type.Name.StartsWith("System.Threading.Task")))
             {
                 // try to get the m_stateFlags field value

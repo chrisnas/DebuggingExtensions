@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ClrMDExports;
 using ClrMDStudio;
 using Microsoft.Diagnostics.Runtime;
 using RGiesecke.DllExport;
@@ -12,21 +13,17 @@ namespace gsose
         [DllExport("dcq")]
         public static void dcq(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnDumpConcurrentQueue(client, args);
+            DebuggingContext.Execute(client, args, OnDumpConcurrentQueue);
         }
 
         [DllExport("DumpConcurrentQueue")]
         public static void DumpConcurrentQueue(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            OnDumpConcurrentQueue(client, args);
+            DebuggingContext.Execute(client, args, OnDumpConcurrentQueue);
         }
 
-        public static void OnDumpConcurrentQueue(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
+        public static void OnDumpConcurrentQueue(ClrRuntime runtime, string args)
         {
-            // Must be the first thing in our extension.
-            if (!InitApi(client))
-                return;
-
             // parse the command argument
             if (string.IsNullOrEmpty(args))
             {
@@ -60,12 +57,12 @@ namespace gsose
             {
                 showItemType = arguments.Any(arg => arg == "-t");
             }
-            ShowConcurrentQueue(reference, showItemType);
+            ShowConcurrentQueue(runtime, reference, showItemType);
         }
 
-        private static void ShowConcurrentQueue(ulong address, bool showItemType)
+        private static void ShowConcurrentQueue(ClrRuntime runtime, ulong address, bool showItemType)
         {
-            var heap = Runtime.Heap;
+            var heap = runtime.Heap;
             ClrType t = heap.GetObjectType(address);
             if (t == null)
             {
@@ -76,7 +73,7 @@ namespace gsose
             try
             {
                 // different implementations between .NET Core and .NET Framework
-                var helper = new ClrMDHelper(Runtime);
+                var helper = new ClrMDHelper(runtime);
                 var cq = heap.GetProxy(address);
                 int count = 0;
                 foreach (var item in ClrMDHelper.EnumerateConcurrentQueue(cq, helper.IsNetCore()))
