@@ -101,7 +101,6 @@
     </Compile>
     <Compile Include="ConcurrentDictionary.cs" />
     <Compile Include="ConcurrentQueue.cs" />
-    <Compile Include="DumpHeap.cs" />
     <Compile Include="GarbageCollector.cs" />
     <Compile Include="Help.cs" />
     <Compile Include="Init.cs" />

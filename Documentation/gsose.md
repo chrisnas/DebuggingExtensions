@@ -210,8 +210,8 @@ System.Collections.Concurrent.ConcurrentDictionary<System.Int32,NetCoreConsoleAp
 ```
 !GCInfo
 
-!GCInfo lists generations per segments with pinned objects
-0:000> !gci
+!GCInfo lists generations per segments. Show pinned objects with -pinned and object instances count/size with -stat (by default)
+0:000> !gci -pinned
 13 - 7 generations
     LOH | 9F06001000 - 9F0CDDB8C8 (   115,189,960)
 

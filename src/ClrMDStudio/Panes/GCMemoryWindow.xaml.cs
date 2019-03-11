@@ -52,7 +52,7 @@ namespace ClrMDStudio
         private void Initialize()
         {
             var helper = new ClrMDHelper(_session.Clr);
-            var segments = helper.ComputeGCSegments();
+            var segments = helper.ComputeGCSegments(needPinned:true);
             SetResultAsync(segments);
         }
 

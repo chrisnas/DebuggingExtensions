@@ -30,13 +30,21 @@ namespace gsose
 
         private static void OnGCInfo(ClrRuntime runtime, string args)
         {
-            var helper = new ClrMDHelper(runtime);
-            var segments = helper.ComputeGCSegments();
+            if (!runtime.Heap.CanWalkHeap)
+            {
+                Console.WriteLine("Impossible to walk managed heap...");
+                return;
+            }
 
-            ListGenerations(segments);
+            var showPinned = (args.Contains("-pinned"));
+            var showStats = (args.Contains("-stat")) || !showPinned;  // show it by default if nothing else has been asked
+            var helper = new ClrMDHelper(runtime);
+            var segments = helper.ComputeGCSegments(showPinned);
+
+            ListGenerations(runtime.Heap, segments, showStats, showPinned);
         }
 
-        private static void ListGenerations(IReadOnlyList<SegmentInfo> segments)
+        private static void ListGenerations(ClrHeap heap, IReadOnlyList<SegmentInfo> segments, bool showStats, bool showPinned)
         {
             var sb = new StringBuilder(8 * 1024 * 1024);
             for (int currentSegment = 0; currentSegment < segments.Count; currentSegment++)
@@ -50,20 +58,86 @@ namespace gsose
                     var generation = generations[currentGeneration];                                                                                                                                //      V---- up to 99 GB
                     Console.WriteLine($"   {GetGenerationType(generation)} | {generation.Start.ToString("X")} - {generation.End.ToString("X")} ({(generation.End - generation.Start).ToString("N0").PadLeft(14)})");
 
-                    sb.Clear();
-                    var pinnedObjects = generation.PinnedObjects;
-                    for (int currentPinnedObject = 0; currentPinnedObject < pinnedObjects.Count; currentPinnedObject++)
+                    if (showStats)
                     {
-                        var pinnedObject = pinnedObjects[currentPinnedObject];
-                        sb.AppendFormat("          {0,11} | <link cmd=\"!do {1:x}\">{1:x}</link> {2}\r\n",
-                            pinnedObject.handle.HandleType,
-                            pinnedObject.handle.Object,
-                            pinnedObject.typeDescription
-                            );
+                        sb.Clear();
+
+                        ShowStatsForGenerationInSegment(heap, generation, sb);
+                        Console.WriteLine(sb.ToString());
                     }
-                    Console.WriteLine(sb.ToString());
+                    if (showPinned)
+                    {
+                        sb.Clear();
+                        var pinnedObjects = generation.PinnedObjects;
+                        for (int currentPinnedObject = 0; currentPinnedObject < pinnedObjects.Count; currentPinnedObject++)
+                        {
+                            var pinnedObject = pinnedObjects[currentPinnedObject];
+                            sb.AppendFormat("          {0,11} | <link cmd=\"!do {1:x}\">{1:x}</link> {2}\r\n",
+                                pinnedObject.handle.HandleType,
+                                pinnedObject.handle.Object,
+                                pinnedObject.typeDescription
+                            );
+                        }
+                        Console.WriteLine(sb.ToString());
+                    }
                 }
             }
+        }
+
+
+        class TypeEntry
+        {
+            public string TypeName;
+            public int Count;
+            public ulong Size;
+        }
+
+        private static void ShowStatsForGenerationInSegment(ClrHeap heap, GenerationInSegment generation, StringBuilder sb)
+        {
+            var statistics = new Dictionary<string, TypeEntry>(128);
+            int objectCount = 0;
+            for (int i = 0; i < generation.InstancesAddresses.Length; i++)
+            {
+                var address = generation.InstancesAddresses[i];
+                var type = heap.GetObjectType(address);
+                var name = GetTypeName(type);
+
+                ulong size = type.GetSize(address);
+
+                if (!statistics.TryGetValue(name, out var entry))
+                {
+                    entry = new TypeEntry()
+                    {
+                        TypeName = type.Name,
+                        Size = 0
+                    };
+                    statistics[name] = entry;
+                }
+                entry.Count++;
+                entry.Size += size;
+                objectCount++;
+            }
+
+            var sortedStatistics =
+                from entry in statistics.Values
+                orderby entry.Size descending
+                select entry;
+            Console.WriteLine("         {0,12} {1,12} {2}", "Count", "TotalSize", "Class Name");
+            foreach (var entry in sortedStatistics)
+                Console.WriteLine($"         {entry.Size,12:D} {entry.Count,12:D} {entry.TypeName}");
+            Console.WriteLine($"         Total {objectCount} objects");
+        }
+
+        static readonly Dictionary<ClrType, string> TypeNames = new Dictionary<ClrType, string>();
+        private static string GetTypeName(ClrType type)
+        {
+            if (!TypeNames.TryGetValue(type, out var typeName))
+            {
+                typeName = type.Name;
+                TypeNames[type] = typeName;
+            }
+
+            return typeName;
         }
 
         private static string GetGenerationType(GenerationInSegment generation)

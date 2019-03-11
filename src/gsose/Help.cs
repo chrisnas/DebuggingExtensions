@@ -216,9 +216,9 @@ namespace gsose
             "-------------------------------------------------------------------------------\r\n" +
             "!GCInfo\r\n" +
             "\r\n" +
-            "!GCInfo lists generations per segments with pinned objects" +
+            "!GCInfo lists generations per segments. Show pinned objects with -pinned and object instances count/size with -stat (by default)" +
             "\r\n" +
-            "0:000> !gci\r\n" +
+            "0:000> !gci [-stat] [-pinned]\r\n" +
             "\r\n" +
             "\r\n";
         //

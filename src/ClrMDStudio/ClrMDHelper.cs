@@ -21,11 +21,13 @@ namespace ClrMDStudio
     public class GenerationInSegment
     {
         private List<(ClrHandle handle, string typeDescription)> _pinnedObjects;
-        private readonly IReadOnlyList<FreeBlock> _freeBlocks;
-
-        public GenerationInSegment(IReadOnlyList<FreeBlock> freeBlocks)
+        
+        public GenerationInSegment(ulong[] instances, IReadOnlyList<FreeBlock> freeBlocks, int count, ulong size)
         {
-            _freeBlocks = freeBlocks;
+            FreeBlocks = freeBlocks;
+            FreeBlocksCount = count;
+            FreeBlocksSize = size;
+            InstancesAddresses = instances;
             _pinnedObjects = new List<(ClrHandle, string)>();
         }
 
@@ -33,9 +35,12 @@ namespace ClrMDStudio
         public ulong Start { get; set; }
         public ulong End { get; set; }
         public ulong Length { get; set; }
+        public ulong[] InstancesAddresses { get; }
         public IReadOnlyList<(ClrHandle handle, string typeDescription)> PinnedObjects =>
             _pinnedObjects.OrderBy(po => po.handle.Object).ToList();
-        public IReadOnlyList<FreeBlock> FreeBlocks => _freeBlocks;
+        public IReadOnlyList<FreeBlock> FreeBlocks { get; }
+        public int FreeBlocksCount { get; }
+        public ulong FreeBlocksSize { get; }
 
         internal void AddPinnedObject(ClrHandle pinnedObject)
         {
@@ -90,11 +95,12 @@ namespace ClrMDStudio
         }
         internal void AddGenerationInSegment(
             int generation, ulong start, ulong end, ulong length,
+            ulong[] instances, int count, ulong size,
             IReadOnlyList<FreeBlock> freeBlocks
             )
         {
             _generations.Add(
-                new GenerationInSegment(freeBlocks)
+                new GenerationInSegment(instances, freeBlocks, count, size)
                 {
                     Generation = generation,
                     Start = start,
@@ -1243,7 +1249,7 @@ namespace ClrMDStudio
 
             return generations;
         }
-        public IReadOnlyList<SegmentInfo> ComputeGCSegments()
+        public IReadOnlyList<SegmentInfo> ComputeGCSegments(bool needPinned)
         {
             // merge ClrSegments
             List<SegmentInfo> segments = new List<SegmentInfo>();
@@ -1263,36 +1269,39 @@ namespace ClrMDStudio
             }
 
             // dispatch pinned objects to the right segment/generation
-            var pinnedObjectsCount = 0;
-            foreach (var gcHandle in _clr.EnumerateHandles())
+            if (needPinned)
             {
-                if (!gcHandle.IsPinned)
-                    continue;
-
-                // address of the object pinned by the handle
-                var address = gcHandle.Object;
-                var segment = _heap.GetSegmentByAddress(address);
-                if (segment != null)
+                var pinnedObjectsCount = 0;
+                foreach (var gcHandle in _clr.EnumerateHandles())
                 {
-                    var generation = segment.GetGeneration(address);
+                    if (!gcHandle.IsPinned)
+                        continue;
 
-                    // take care of LOH case
-                    if ((generation == 2) && (segment.IsLarge))
+                    // address of the object pinned by the handle
+                    var address = gcHandle.Object;
+                    var segment = _heap.GetSegmentByAddress(address);
+                    if (segment != null)
                     {
-                        generation = 3;
+                        var generation = segment.GetGeneration(address);
+
+                        // take care of LOH case
+                        if ((generation == 2) && (segment.IsLarge))
+                        {
+                            generation = 3;
+                        }
+
+                        var genInSegment = GetGeneration(segments, address);
+
+                        Debug.Assert(genInSegment != null);
+                        Debug.Assert(genInSegment.Generation == generation);
+
+                        pinnedObjectsCount++;
+                        genInSegment.AddPinnedObject(gcHandle);
                     }
-
-                    var genInSegment = GetGeneration(segments, address);
-
-                    Debug.Assert(genInSegment != null);
-                    Debug.Assert(genInSegment.Generation == generation);
-
-                    pinnedObjectsCount++;
-                    genInSegment.AddPinnedObject(gcHandle);
-                }
-                else
-                {
-                    // should never occur
+                    else
+                    {
+                        // should never occur
+                    }
                 }
             }
 
@@ -1319,7 +1328,8 @@ namespace ClrMDStudio
         }
         private void MergeSegment(ClrSegment segment, SegmentInfo info)
         {
-            var freeObjects = ComputeFreeBlocks(segment);
+            var freeObjects = 
+                DispatchInstances(segment, out var freeBlocksCount, out var freeBlocksSize, out var instances);
 
             // if LOH, just one generation in this segment
             if (segment.IsLarge)
@@ -1327,6 +1337,7 @@ namespace ClrMDStudio
                 // add only an LOH generation in segment info
                 info.AddGenerationInSegment(
                     3, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length,
+                    instances, freeBlocksCount, freeBlocksSize,
                     FilterFreeBlocks(freeObjects, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length)
                     );
                 return;
@@ -1337,10 +1348,12 @@ namespace ClrMDStudio
             {
                 info.AddGenerationInSegment(
                     0, segment.Gen0Start, segment.Gen0Start + segment.Gen0Length, segment.Gen0Length,
+                    instances, freeBlocksCount, freeBlocksSize,
                     FilterFreeBlocks(freeObjects, segment.Gen0Start, segment.Gen0Start + segment.Gen0Length)
                     );
                 info.AddGenerationInSegment(
                     1, segment.Gen1Start, segment.Gen1Start + segment.Gen1Length, segment.Gen1Length,
+                    instances, freeBlocksCount, freeBlocksSize,
                     FilterFreeBlocks(freeObjects, segment.Gen1Start, segment.Gen1Start + segment.Gen1Length)
                     );
             }
@@ -1348,23 +1361,36 @@ namespace ClrMDStudio
             // always add gen2
             info.AddGenerationInSegment(
                 2, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length, segment.Gen2Length,
+                instances, freeBlocksCount, freeBlocksSize,
                 FilterFreeBlocks(freeObjects, segment.Gen2Start, segment.Gen2Start + segment.Gen2Length)
                 );
         }
 
-        private IReadOnlyList<FreeBlock> ComputeFreeBlocks(ClrSegment segment)
+        private IReadOnlyList<FreeBlock> DispatchInstances(ClrSegment segment, 
+            out int freeBlocksCount, out ulong freeBlocksSize, out ulong[] instanceAddresses)
         {
-            var freeBlocks = new List<FreeBlock>();
-
+            freeBlocksSize = 0;
+            freeBlocksCount = 0;
+            var freeBlocks = new List<FreeBlock>(128);
+            var instances = new List<ulong>(128);
             for (ulong obj = segment.FirstObject; obj != 0; obj = segment.NextObject(obj))
             {
                 var type = segment.Heap.GetObjectType(obj);
                 if (type.IsFree)
                 {
-                    freeBlocks.Add(new FreeBlock(obj, type.GetSize(obj)));
+                    var blockSize = type.GetSize(obj);
+                    freeBlocksSize += blockSize;
+                    freeBlocksCount++;
+
+                    freeBlocks.Add(new FreeBlock(obj, blockSize));
+                }
+                else
+                {
+                    instances.Add(obj);
                 }
             }
 
+            instanceAddresses = instances.ToArray();
             return freeBlocks;
         }
         private IReadOnlyList<FreeBlock> FilterFreeBlocks(
