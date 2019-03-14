@@ -5,6 +5,8 @@ The few "debugging extensions" that have been created at Criteo to help post-mor
    [zip](./binaries/ClrMDStudio-1.5.1_x64.zip)
 - as a [WinDBG extension](./Documentation/gsose.md) to get the same level of details plus more commands such as getting a method signature based on its address.
    [zip](./binaries/gsose-1.5.3_x64.zip)
+- as a [.NET Core console tool](./Documentation/pstacks.md) to load a .NET application memory dump and show merged threads call stack à la Visual Studio "parallel stacks" (works also on Linux).
+   [zip](./binaries/pstacks-1.0.1.zip)
 
 More analyzers and commands will be added as needed.
 
@@ -38,15 +40,19 @@ More commands will be added as needed.
 
 
 ## Source Code
-The `DebuggingExtensions` Visual Studio 2017 solution contains two projects:
+The `DebuggingExtensions` Visual Studio 2017 solution contains three projects:
 
 1. `ClrMDStudio`: WPF application that loads a dump file on which commands to be executed 
 
 2. `gsose`: "***G**rand **S**on **O**f **S**trike **E**xtension*" for WinDBG that exposes the same commands (and more)
+
+3. `pstacks`: .NET Core console application that loads a dump file and shows merged parallel stacks
+
 
 
 These projects depends on Nuget packages:
 
 - [ClrMD](https://github.com/Microsoft/clrmd): C# library to explore dump files.
 - [DynaMD](https://github.com/kevingosse/DynaMD): C# `dynamic`-based helpers on top of ClrMD.
+- [ClrMDExports](https://github.com/kevingosse/ClrMDExports): Helper to write WinDBG/LLDB extensionss on top of ClrMD.
 

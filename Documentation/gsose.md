@@ -9,25 +9,59 @@ gsose is a debugger extension DLL designed to dig into CLR data structures.
 Functions are listed by category and shortcut names are listed in parenthesis.
 Type "!help " for detailed info on that function.
 
-Thread Pool                       Timers
+Thread Pool                       Threads
 -----------------------------     -----------------------------
-TpQueue(tpq)                      TimerInfo (ti)
+TpQueue(tpq)                      ParallelStacks (pstacks)
 TpRunning(tpr)
 
-Tasks                             Strings
+Tasks                             Timers
 -----------------------------     -----------------------------
-TkState (tks)                     StringDuplicates (sd)
+TkState (tks)                     TimerInfo (ti)
 GetMethodName (gmn)
 
-Data structures
------------------------------
-DumpConcurrentDictionary (dcd)
+Data structures                  Strings
+-----------------------------    -----------------------------
+DumpConcurrentDictionary (dcd)   StringDuplicates (sd)
 DumpConcurrentQueue (dcq)
 
 Garbage Collector
 -----------------------------
 GCInfo (gci)
 PinnedObjects (po)
+```
+
+
+
+## ParallelStacks (pstacks)
+```
+!pstacks merges parallel stacks
+0:000> !pstacks
+________________________________________________
+~~~~
+    1 (dynamicClass).IL_STUB_PInvoke(IntPtr, Byte*, Int32, Int32 ByRef, IntPtr)
+    ...
+    1 System.Console.ReadLine()
+    1 NetCoreConsoleApp.Program.Main(String[])
+
+________________________________________________
+           ~~~~
+              1 System.Threading.Monitor.Wait(Object, Int32, Boolean)
+              ...
+              1 System.Threading.Tasks.Task.Wait()
+              1 NetCoreConsoleApp.Program+c.b__1_4(Object)
+           ~~~~
+              2 System.Threading.Monitor.Wait(Object, Int32, Boolean)
+              ...
+                   2 NetCoreConsoleApp.Program+c__DisplayClass1_0.b__7()
+              3 System.Threading.Tasks.Task.InnerInvoke()
+         4 System.Threading.Tasks.Task+c.cctor>b__278_1(Object)
+         ...
+         4 System.Threading.Tasks.Task.ExecuteEntryUnsafe()
+         4 System.Threading.Tasks.Task.ExecuteWorkItem()
+    7 System.Threading.ThreadPoolWorkQueue.Dispatch()
+    7 System.Threading._ThreadPoolWaitCallback.PerformWaitCallback()
+
+==> 8 threads with 2 roots
 ```
 
 
@@ -211,7 +245,7 @@ System.Collections.Concurrent.ConcurrentDictionary<System.Int32,NetCoreConsoleAp
 !GCInfo
 
 !GCInfo lists generations per segments. Show pinned objects with -pinned and object instances count/size with -stat (by default)
-0:000> !gci -pinned
+0:000> !gci [-stat] [-pinned]
 13 - 7 generations
     LOH | 9F06001000 - 9F0CDDB8C8 (   115,189,960)
 

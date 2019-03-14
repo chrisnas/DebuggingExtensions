@@ -19,26 +19,26 @@ namespace gsose
             DebuggingContext.Execute(client, args, OnHelp);
         }
 
-        const string _help =
-        "-------------------------------------------------------------------------------\r\n"+
+        private const string _help =
+        "-------------------------------------------------------------------------------\r\n" +
         "gsose is a debugger extension DLL designed to dig into CLR data structures.\r\n" +
         "Functions are listed by category and shortcut names are listed in parenthesis.\r\n" +
-        "Type \"!help <functionname>\" for detailed info on that function.\r\n"+
-        "\r\n"+
-        "Thread Pool                       Timers\r\n"+
-        "-----------------------------     -----------------------------\r\n"+
-        "TpQueue(tpq)                      TimerInfo (ti)\r\n"+
-        "TpRunning(tpr)\r\n"+
+        "Type \"!help <functionname>\" for detailed info on that function.\r\n" +
         "\r\n" +
-        "Tasks                             Strings\r\n" +
+        "Thread Pool                       Threads\r\n" +
         "-----------------------------     -----------------------------\r\n" +
-        "TkState (tks)                     StringDuplicates (sd)\r\n" +
+        "TpQueue(tpq)                      ParallelStacks (pstacks)\r\n" +
+        "TpRunning(tpr)\r\n" +
+        "\r\n" +
+        "Tasks                             Timers\r\n" +
+        "-----------------------------     -----------------------------\r\n" +
+        "TkState (tks)                     TimerInfo (ti)\r\n" +
         "GetMethodName (gmn)                                    \r\n" +
         "\r\n" +
-        "Data structures\r\n" +
-        "-----------------------------\r\n" +
-        "DumpConcurrentDictionary (dcd)\r\n" +
-        "DumpConcurrentQueue (dcq)\r\n" +
+        "Data structures                  Strings\r\n" +
+        "-----------------------------    -----------------------------\r\n" +
+        "DumpConcurrentDictionary (dcd)   StringDuplicates (sd)\r\n" +
+        "DumpConcurrentQueue (dcq)         \r\n" +
         "\r\n" +
         "Garbage Collector\r\n" +
         "-----------------------------\r\n" +
@@ -253,6 +253,41 @@ namespace gsose
             "   5 - 0x000001D10DF5B480 | NetCoreConsoleApp.InstanceInConcurrentDataStructures\r\n" +
             "\r\n";
         //
+        private const string _pstacksHelp =
+            "-------------------------------------------------------------------------------\r\n" +
+            "!pstacks\r\n" +
+            "\r\n" +
+            "!pstacks merges parallel stacks" +
+            "\r\n" +
+            "0:000> !pstacks\r\n" +
+            "________________________________________________\r\n" +
+            "~~~~\r\n" +
+            "    1 (dynamicClass).IL_STUB_PInvoke(IntPtr, Byte*, Int32, Int32 ByRef, IntPtr)\r\n" +
+            "    ...\r\n" +
+            "    1 System.Console.ReadLine()\r\n" +
+            "    1 NetCoreConsoleApp.Program.Main(String[])\r\n" +
+            "\r\n" +
+            "________________________________________________\r\n" +
+            "           ~~~~\r\n" +
+            "              1 System.Threading.Monitor.Wait(Object, Int32, Boolean)\r\n" +
+            "              ...\r\n" +
+            "              1 System.Threading.Tasks.Task.Wait()\r\n" +
+            "              1 NetCoreConsoleApp.Program+c.b__1_4(Object)\r\n" +
+            "           ~~~~\r\n" +
+            "              2 System.Threading.Monitor.Wait(Object, Int32, Boolean)\r\n" +
+            "              ...\r\n" +
+            "                   2 NetCoreConsoleApp.Program+c__DisplayClass1_0.b__7()\r\n" +
+            "              3 System.Threading.Tasks.Task.InnerInvoke()\r\n" +
+            "         4 System.Threading.Tasks.Task+c.cctor>b__278_1(Object)\r\n" +
+            "         ...\r\n" +
+            "         4 System.Threading.Tasks.Task.ExecuteEntryUnsafe()\r\n" +
+            "         4 System.Threading.Tasks.Task.ExecuteWorkItem()\r\n" +
+            "    7 System.Threading.ThreadPoolWorkQueue.Dispatch()\r\n" +
+            "    7 System.Threading._ThreadPoolWaitCallback.PerformWaitCallback()\r\n" +
+            "\r\n" +
+            "==> 8 threads with 2 roots" +
+            "\r\n";
+        //
         private static void OnHelp(ClrRuntime runtime, string args)
         {
             string command = args;
@@ -261,13 +296,18 @@ namespace gsose
 
             switch (command)
             {
+                case "pstacks":
+                case "parallelstacks":
+                    Console.WriteLine(_pstacksHelp);
+                    break;
+
                 case "tpr":
                 case "tprunning":
                     Console.WriteLine(_tprHelp);
                     break;
 
                 case "tpq":
-                case "tpQueue":
+                case "tpqueue":
                     Console.WriteLine(_tpqHelp);
                     break;
 
@@ -292,23 +332,22 @@ namespace gsose
                     break;
 
                 case "po":
-                case "PinnedObjects":
-                case "pinnedObjects":
+                case "pinnedobjects":
                     Console.WriteLine(_poHelp);
                     break;
 
                 case "gci":
-                case "GCInfo":
+                case "gcinfo":
                     Console.WriteLine(_gciHelp);
                     break;
 
                 case "dcd":
-                case "DumpConcurrentDictionary":
+                case "dumpconcurrentdictionary":
                     Console.WriteLine(_dcdHelp);
                     break;
 
                 case "dcq":
-                case "DumpConcurrentQueue":
+                case "dumpconcurrentqueue":
                     Console.WriteLine(_dcqHelp);
                     break;
 
