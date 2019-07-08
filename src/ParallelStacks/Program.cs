@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.Diagnostics.Runtime;
+using System.Text;
+using ParallelStacks.Runtime;
 
 namespace ParallelStacks
 {
@@ -11,17 +11,10 @@ namespace ParallelStacks
         {
             if (args.Length == 0)
             {
-                ShowHelp("Missing dump file path...");
+                ShowHelp("Missing dump file path or process ID...");
                 return;
             }
 
-            var dumpFile = args[0];
-
-            if (!File.Exists(dumpFile))
-            {
-                Console.WriteLine($"'{dumpFile}' does not exist...");
-                return;
-            }
             string dacFilePath = (args.Length >= 2) ? args[1] : null;
             if (dacFilePath != null)
             {
@@ -32,76 +25,55 @@ namespace ParallelStacks
                 }
             }
 
-            // collapse stacks
-            var ps = BuildParallelStacks(dumpFile, dacFilePath);
-            if (ps == null)
+            ParallelStack ps;
+
+            var input = args[0];
+
+            // attach to live process
+            if (int.TryParse(input, out var pid))
             {
-                return;
+                try
+                {
+                    ps = ParallelStack.Build(pid, dacFilePath);
+                }
+                catch (InvalidOperationException x)
+                {
+                    Console.WriteLine($"Impossible to build call stacks: {x.Message}");
+                    return;
+                }
+            }
+            // open memory dump
+            else 
+            {
+                if (!File.Exists(input))
+                {
+                    Console.WriteLine($"'{input}' does not exist...");
+                    return;
+                }
+
+                try
+                {
+                    ps = ParallelStack.Build(input, dacFilePath);
+                }
+                catch (InvalidOperationException x)
+                {
+                    Console.WriteLine($"Impossible to build call stacks: {x.Message}");
+                    return;
+                }
             }
 
-            // display parallel stacks
+            var visitor = new ConsoleRenderer(useDml: false);
             Console.WriteLine();
             foreach (var stack in ps.Stacks)
             {
                 Console.Write("________________________________________________");
-                stack.WriteToConsole();
+                stack.Render(visitor);
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine();
             }
 
             Console.WriteLine($"==> {ps.ThreadIds.Count} threads with {ps.Stacks.Count} roots{Environment.NewLine}");
-        }
-
-        static ParallelStack BuildParallelStacks(string dumpFile, string dacFilePath)
-        {
-            DataTarget dataTarget = null;
-            ParallelStack ps = null;
-            try
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    dataTarget = DataTarget.LoadCrashDump(dumpFile);
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    dataTarget = DataTarget.LoadCoreDump(dumpFile);
-                }
-                else
-                {
-                    Console.WriteLine("Unsupported platform...");
-                    return null;
-                }
-
-                var runtime = CreateRuntime(dataTarget, dacFilePath);
-                if (runtime == null)
-                {
-                    return null;
-                }
-
-                ps = ParallelStack.Build(runtime);
-            }
-            finally
-            {
-                dataTarget?.Dispose();
-            }
-
-            return ps;
-        }
-
-        static ClrRuntime CreateRuntime(DataTarget dataTarget, string dacFilePath)
-        {
-            // check bitness first
-            bool isTarget64Bit = (dataTarget.PointerSize == 8);
-            if (Environment.Is64BitProcess != isTarget64Bit)
-            {
-                Console.WriteLine("Architecture mismatch:  This tool is {0} but target is {1}", Environment.Is64BitProcess ? "64 bit" : "32 bit", isTarget64Bit ? "64 bit" : "32 bit");
-                return null;
-            }
-
-            var version = dataTarget.ClrVersions[0];
-            var runtime = (dacFilePath != null) ? version.CreateRuntime(dacFilePath) : version.CreateRuntime();
-            return runtime;
         }
 
 
@@ -118,11 +90,11 @@ namespace ParallelStacks
         }
 
         private static string Header = 
-"pstacks v1.0.1 - Parallel Stacks" + Environment.NewLine +
+"pstacks v1.1 - Parallel Stacks" + Environment.NewLine +
 "by Christophe Nasarre" + Environment.NewLine +
             "Aggregate the threads callstacks a la Visual Studio 'Parallel Stacks'";
         private static string Help = 
-"Usage:  pstacks <dump file path> [dac file path if any]" + Environment.NewLine +
+"Usage:  pstacks <dump file path or process ID> [dac file path if any]" + Environment.NewLine +
             "";
     }
 }

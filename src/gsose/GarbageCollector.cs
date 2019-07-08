@@ -15,20 +15,29 @@ namespace gsose
         [DllExport("gci")]
         public static void gci(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            DebuggingContext.Execute(client, args, OnGCInfo);
+            DebuggingContext.Execute(client, args, GCCommands.OnGCInfo);
         }
         [DllExport("gcinfo")]
         public static void gcinfo(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            DebuggingContext.Execute(client, args, OnGCInfo);
+            DebuggingContext.Execute(client, args, GCCommands.OnGCInfo);
         }
         [DllExport("GCInfo")]
         public static void GCInfo(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
-            DebuggingContext.Execute(client, args, OnGCInfo);
+            DebuggingContext.Execute(client, args, GCCommands.OnGCInfo);
+        }
+    }
+
+    internal class GCCommands
+    {
+        public static void OnGCInfo(ClrRuntime runtime, string args)
+        {
+            var command = new GCCommands();
+            command.GetGCInfo(runtime, args);
         }
 
-        private static void OnGCInfo(ClrRuntime runtime, string args)
+        private void GetGCInfo(ClrRuntime runtime, string args)
         {
             if (!runtime.Heap.CanWalkHeap)
             {
@@ -44,7 +53,7 @@ namespace gsose
             ListGenerations(runtime.Heap, segments, showStats, showPinned);
         }
 
-        private static void ListGenerations(ClrHeap heap, IReadOnlyList<SegmentInfo> segments, bool showStats, bool showPinned)
+        private void ListGenerations(ClrHeap heap, IReadOnlyList<SegmentInfo> segments, bool showStats, bool showPinned)
         {
             var sb = new StringBuilder(8 * 1024 * 1024);
             for (int currentSegment = 0; currentSegment < segments.Count; currentSegment++)
@@ -92,7 +101,7 @@ namespace gsose
             public ulong Size;
         }
 
-        private static void ShowStatsForGenerationInSegment(ClrHeap heap, GenerationInSegment generation, StringBuilder sb)
+        private void ShowStatsForGenerationInSegment(ClrHeap heap, GenerationInSegment generation, StringBuilder sb)
         {
             var statistics = new Dictionary<string, TypeEntry>(128);
             int objectCount = 0;
@@ -128,8 +137,8 @@ namespace gsose
             Console.WriteLine($"         Total {objectCount} objects");
         }
 
-        static readonly Dictionary<ClrType, string> TypeNames = new Dictionary<ClrType, string>();
-        private static string GetTypeName(ClrType type)
+        readonly Dictionary<ClrType, string> TypeNames = new Dictionary<ClrType, string>();
+        private string GetTypeName(ClrType type)
         {
             if (!TypeNames.TryGetValue(type, out var typeName))
             {
@@ -140,12 +149,12 @@ namespace gsose
             return typeName;
         }
 
-        private static string GetGenerationType(GenerationInSegment generation)
+        private string GetGenerationType(GenerationInSegment generation)
         {
             return GetGenerationType(generation.Generation);
         }
 
-        private static string GetGenerationType(int generation)
+        private string GetGenerationType(int generation)
         {
             return (generation == 3) ? " LOH" : $"gen{generation}";
         }

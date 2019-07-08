@@ -2,8 +2,9 @@
 using System.Runtime.InteropServices;
 using ClrMDExports;
 using Microsoft.Diagnostics.Runtime;
-using ParallelStacks;
+using ParallelStacks.Runtime;
 using RGiesecke.DllExport;
+
 
 namespace gsose
 {
@@ -20,26 +21,29 @@ namespace gsose
         {
             DebuggingContext.Execute(client, args, OnParallelStacks);
         }
+
+        // Needed to add Show to avoid conflict with ParallelStack.Runtime
         [DllExport("ParallelStacks")]
-        public static void ParallelStacks(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
+        public static void ShowParallelStacks(IntPtr client, [MarshalAs(UnmanagedType.LPStr)] string args)
         {
             DebuggingContext.Execute(client, args, OnParallelStacks);
         }
 
         private static void OnParallelStacks(ClrRuntime runtime, string args)
         {
-            var ps = ParallelStack.Build(runtime);
+            var ps = ParallelStacks.Runtime.ParallelStack.Build(runtime);
             if (ps == null)
             {
                 return;
             }
 
             // display parallel stacks
+            var visitor = new ConsoleRenderer(useDml: true);
             Console.WriteLine();
             foreach (var stack in ps.Stacks)
             {
                 Console.Write("________________________________________________");
-                stack.WriteToConsole(useDml:true);
+                stack.Render(visitor);
                 Console.WriteLine();
                 Console.WriteLine();
                 Console.WriteLine();

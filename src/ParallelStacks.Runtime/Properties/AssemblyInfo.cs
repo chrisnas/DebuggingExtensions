@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("pstacks")]
-[assembly: AssemblyDescription("Parallel Stacks shows merged thread stacks")]
+[assembly: AssemblyTitle("ParallelStacks.Runtime")]
+[assembly: AssemblyDescription("Helpers to build and render parallel stacks")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("pstacks")]
+[assembly: AssemblyProduct("ParallelStacks.Runtime")]
 [assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("1bb98487-ff65-4752-ad21-41c8e8acdb9c")]
+[assembly: Guid("25ed6f0f-2c89-43e0-86b4-4f6fab30a905")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -28,15 +28,10 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
 //
-// version 1.1
+// version 1.0
 // -----------------------------------------
-//  - supports attaching to a live process (even on Linux but not working with ClrMD 1.1.35504)
-//  - change parallel stacks rendering implementation
-//  - update dependencies version
+//  - refactor rendering
 //
-// version 1.0.1
-// -----------------------------------------
-//  - remove namespaces from generic parameters type name in method signatures

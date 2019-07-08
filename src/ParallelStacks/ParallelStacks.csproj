@@ -9,7 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.0.3" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.35504" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ParallelStacks.Runtime\ParallelStacks.Runtime.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,5 +21,4 @@
       <HintPath>System</HintPath>
     </Reference>
   </ItemGroup>
-
 </Project>

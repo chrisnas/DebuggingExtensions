@@ -2,11 +2,13 @@
 The few "debugging extensions" that have been created at Criteo to help post-mortem .NET applications analysis are now available:
 
 - as a [stand alone tool](./Documentation/ClrMDStudio.md) to load a .NET application memory dump and start automatic thread, thread pool, tasks and timer analysis.
-   [zip](./binaries/ClrMDStudio-1.5.1_x64.zip)
+   [zip](./binaries/ClrMDStudio-1.5.2_x64.zip)
 - as a [WinDBG extension](./Documentation/gsose.md) to get the same level of details plus more commands such as getting a method signature based on its address.
-   [zip](./binaries/gsose-1.5.3_x64.zip)
+   [zip](./binaries/gsose-1.6.1_x64.zip)
 - as a [.NET Core console tool](./Documentation/pstacks.md) to load a .NET application memory dump and show merged threads call stack à la Visual Studio "parallel stacks" (works also on Linux).
-   [zip](./binaries/pstacks-1.0.1.zip)
+   [zip](./binaries/pstacks-1.1.zip)
+- as a [.NET standard assembly](./Documentation/parallelStacks.Runtime.md) to build and render parallel stacks from a memory dump file or a live process (on Windows only).
+   [zip](./binaries/ParallelStacks.Runtime-1.0.zip)
 
 More analyzers and commands will be added as needed.
 
@@ -46,8 +48,9 @@ The `DebuggingExtensions` Visual Studio 2017 solution contains three projects:
 
 2. `gsose`: "***G**rand **S**on **O**f **S**trike **E**xtension*" for WinDBG that exposes the same commands (and more)
 
-3. `pstacks`: .NET Core console application that loads a dump file and shows merged parallel stacks
+3. `pstacks`: .NET Core console application that loads a dump file (+ attachs to a live process on Windows) and shows merged parallel stacks
 
+4. `ParallelStacks.Runtime`: .NET Assembly (and available as a nuget too) to let you build and render parallel stacks from your own code
 
 
 These projects depends on Nuget packages:
