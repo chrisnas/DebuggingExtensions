@@ -28,8 +28,13 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
+//
+// version 1.1
+// -----------------------------------------
+//  - use ClrMD version 1.1.37504 to support process-attach on Linux
+//
 //
 // version 1.0
 // -----------------------------------------
