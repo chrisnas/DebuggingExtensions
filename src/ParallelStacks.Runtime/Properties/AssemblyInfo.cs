@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 //
 // version 1.2
 // -----------------------------------------
-//  - show 4 thread IDs per frame group by default (also allow all threads to be displayed)
+//  - show up to 4 thread IDs per frame group by default
 //
 //
 // version 1.1

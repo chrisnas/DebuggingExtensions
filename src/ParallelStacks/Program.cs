@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using ParallelStacks.Runtime;
 
 namespace ParallelStacks
@@ -62,7 +61,8 @@ namespace ParallelStacks
                 }
             }
 
-            var visitor = new ConsoleRenderer(useDml: false);
+            int threadIDsCountlimit = 4;
+            var visitor = new ConsoleRenderer(useDml: false, limit: threadIDsCountlimit);
             Console.WriteLine();
             foreach (var stack in ps.Stacks)
             {
@@ -90,7 +90,7 @@ namespace ParallelStacks
         }
 
         private static string Header = 
-"pstacks v1.1 - Parallel Stacks" + Environment.NewLine +
+"pstacks v1.3 - Parallel Stacks" + Environment.NewLine +
 "by Christophe Nasarre" + Environment.NewLine +
             "Aggregate the threads callstacks a la Visual Studio 'Parallel Stacks'";
         private static string Help = 
