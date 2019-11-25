@@ -1,23 +1,22 @@
-﻿
-using System;
+﻿using System;
 
 namespace ParallelStacks.Runtime
 {
-    public class ConsoleRenderer : IRenderer
+    public class ConsoleRenderer : RendererBase
     {
         private readonly bool _useDml;
 
-        public ConsoleRenderer(bool useDml)
+        public ConsoleRenderer(bool useDml, int limit = -1) : base(limit)
         {
             _useDml = useDml;
         }
 
-        public void Write(string text)
+        public override void Write(string text)
         {
             Console.Write(text);
         }
 
-        public void WriteCount(string count)
+        public override void WriteCount(string count)
         {
             if (_useDml)
             {
@@ -28,27 +27,27 @@ namespace ParallelStacks.Runtime
             WriteWithColor(count, ConsoleColor.Cyan);
         }
 
-        public void WriteNamespace(string ns)
+        public override void WriteNamespace(string ns)
         {
             WriteWithColor(ns, ConsoleColor.DarkCyan);
         }
 
-        public void WriteType(string type)
+        public override void WriteType(string type)
         {
             WriteWithColor(type, ConsoleColor.Gray);
         }
 
-        public void WriteSeparator(string separator)
+        public override void WriteSeparator(string separator)
         {
             WriteWithColor(separator, ConsoleColor.White);
         }
 
-        public void WriteDark(string separator)
+        public override void WriteDark(string separator)
         {
             WriteWithColor(separator, ConsoleColor.DarkGray);
         }
 
-        public void WriteMethod(string method)
+        public override void WriteMethod(string method)
         {
             if (_useDml)
             {
@@ -59,7 +58,7 @@ namespace ParallelStacks.Runtime
             WriteWithColor(method, ConsoleColor.Cyan);
         }
 
-        public void WriteMethodType(string type)
+        public override void WriteMethodType(string type)
         {
             if (_useDml)
             {
@@ -70,7 +69,7 @@ namespace ParallelStacks.Runtime
             WriteWithColor(type, ConsoleColor.DarkCyan);
         }
 
-        public void WriteFrameSeparator(string text)
+        public override void WriteFrameSeparator(string text)
         {
             if (_useDml)
             {
@@ -79,6 +78,18 @@ namespace ParallelStacks.Runtime
             }
 
             WriteWithColor(text, ConsoleColor.Yellow);
+        }
+
+        public override string FormatTheadId(uint threadID)
+        {
+            var idInHex = threadID.ToString("x");
+            if (_useDml)
+            {
+                // change current thread
+                return $"<link cmd=\"~~[{idInHex}]s\">{idInHex}</link>";
+            }
+
+            return idInHex;
         }
 
 

@@ -34,22 +34,25 @@ PinnedObjects (po)
 
 ## ParallelStacks (pstacks)
 ```
-!pstacks merges parallel stacks
-0:000> !pstacks
+!pstacks merges parallel stacks.
+List 4 thread IDs at the end of each frame groups (-all to get the full list).
+Click such a thread ID to change current thread.
+
+0:000> !pstacks (-all)
 ________________________________________________
-~~~~
+~~~~ 8f8c
     1 (dynamicClass).IL_STUB_PInvoke(IntPtr, Byte*, Int32, Int32 ByRef, IntPtr)
     ...
     1 System.Console.ReadLine()
     1 NetCoreConsoleApp.Program.Main(String[])
 
 ________________________________________________
-           ~~~~
+           ~~~~ 7034
               1 System.Threading.Monitor.Wait(Object, Int32, Boolean)
               ...
               1 System.Threading.Tasks.Task.Wait()
               1 NetCoreConsoleApp.Program+c.b__1_4(Object)
-           ~~~~
+           ~~~~ 9c6c,4020
               2 System.Threading.Monitor.Wait(Object, Int32, Boolean)
               ...
                    2 NetCoreConsoleApp.Program+c__DisplayClass1_0.b__7()

@@ -10,14 +10,14 @@
 
   <PropertyGroup>
     <PackageId>ParallelStacks.Runtime</PackageId>
-    <PackageVersion>1.1</PackageVersion>
+    <PackageVersion>1.2</PackageVersion>
     <Title>ParallelStacks.Runtime</Title>
     <Authors>Christophe Nasarre</Authors>
     <Owners>chrisnas</Owners>
     <PackageProjectUrl>https://github.com/chrisnas/DebuggingExtensions</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/chrisnas/DebuggingExtensions/blob/master/LICENSE</PackageLicenseUrl>
     <Description>Helper objects to compute and render thread stacks</Description>
-    <PackageReleaseNotes>- use version of ClrMD that supports attaching to live process on Linux</PackageReleaseNotes>
+    <PackageReleaseNotes>- show 4 thread IDs per frame group by default (also allow all threads to be displayed)</PackageReleaseNotes>
     <Copyright>Copyright 2019-$([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
     <PackageTags>ClrMD Thread Stack</PackageTags>
   </PropertyGroup>

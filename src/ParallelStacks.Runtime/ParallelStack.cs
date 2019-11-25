@@ -27,7 +27,7 @@ namespace ParallelStacks.Runtime
                 if (stackFrames.Count == 0)
                     continue;
 
-                ps.AddStack(thread.ManagedThreadId, stackFrames.ToArray());
+                ps.AddStack(thread.OSThreadId, stackFrames.ToArray());
             }
 
             return ps;
@@ -125,7 +125,7 @@ namespace ParallelStacks.Runtime
         private ParallelStack(ClrStackFrame frame = null)
         {
             Stacks = new List<ParallelStack>();
-            ThreadIds = new List<int>();
+            ThreadIds = new List<uint>();
             Frame = (frame == null) ? null : new StackFrame(frame);
         }
 
@@ -133,7 +133,7 @@ namespace ParallelStacks.Runtime
 
         public StackFrame Frame { get; }
 
-        public List<int> ThreadIds { get; set; }
+        public List<uint> ThreadIds { get; set; }
 
         public void Render(IRenderer visitor)
         {
@@ -148,7 +148,7 @@ namespace ParallelStacks.Runtime
             {
                 var lastFrame = stack.Frame;
                 visitor.Write($"{Environment.NewLine}{alignment}");
-                visitor.WriteFrameSeparator(" ~~~~");
+                visitor.WriteFrameSeparator($" ~~~~ {FormatThreadIdList(visitor, stack.ThreadIds)}");
                 visitor.WriteCount($"{Environment.NewLine}{alignment}{stack.ThreadIds.Count,Padding} ");
 
                 RenderFrame(lastFrame, visitor);
@@ -164,6 +164,22 @@ namespace ParallelStacks.Runtime
             var currentFrame = stack.Frame;
             visitor.WriteCount($"{Environment.NewLine}{alignment}{stack.ThreadIds.Count,Padding} ");
             RenderFrame(currentFrame, visitor);
+        }
+
+        private string FormatThreadIdList(IRenderer visitor, List<uint> threadIds)
+        {
+            var count = threadIds.Count;
+            var limit = visitor.DisplayThreadIDsCountLimit;
+            limit = Math.Min(count, limit);
+            if (limit < 0)
+                return string.Join(",", threadIds.Select(tid => visitor.FormatTheadId(tid)));
+            else
+            {
+                var result = string.Join(",", threadIds.GetRange(0, limit).Select(tid => visitor.FormatTheadId(tid)));
+                if (count > limit)
+                    result += "...";
+                return result;
+            }
         }
 
         private void RenderFrame(StackFrame frame, IRenderer visitor)
@@ -204,7 +220,7 @@ namespace ParallelStacks.Runtime
         }
 
 
-        private void AddStack(int threadId, ClrStackFrame[] frames, int index = 0)
+        private void AddStack(uint threadId, ClrStackFrame[] frames, int index = 0)
         {
             ThreadIds.Add(threadId);
             var firstFrame = frames[index].DisplayString;

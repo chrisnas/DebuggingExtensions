@@ -109,6 +109,9 @@
     <Compile Include="..\ParallelStacks.Runtime\ParallelStack.cs">
       <Link>ParallelStack.cs</Link>
     </Compile>
+    <Compile Include="..\ParallelStacks.Runtime\RendererBase.cs">
+      <Link>RendererBase.cs</Link>
+    </Compile>
     <Compile Include="..\ParallelStacks.Runtime\StackFrame.cs">
       <Link>StackFrame.cs</Link>
     </Compile>

@@ -1,4 +1,6 @@
-﻿namespace ParallelStacks.Runtime
+﻿using System.Collections.Generic;
+
+namespace ParallelStacks.Runtime
 {
     /// <summary>
     /// The method of this interface are called to render each part of the parallel call stacks
@@ -8,6 +10,15 @@
     /// </remarks>
     public interface IRenderer
     {
+        /// <summary>
+        /// Max number of thread IDs to display at the end of each stack frame group.
+        /// This is important in the case of 100+ threads applications.
+        /// </summary>
+        /// <remarks>
+        /// Use -1 if there should not be any limit.
+        /// </remarks>
+        int DisplayThreadIDsCountLimit { get; }
+
         /// <summary>
         /// Render empty line
         /// </summary>
@@ -61,5 +72,12 @@
         /// </summary>
         /// <param name="text"></param>
         void WriteFrameSeparator(string text);
+
+        /// <summary>
+        /// Render a thread id that will appear for each stack frames group (at the end of WriteFrameSeparator)
+        /// For example, in HTML it could be used to add a link to show details such as ClrStack -p
+        /// </summary>
+        /// <param name="text"></param>
+        string FormatTheadId(uint threadID);
     }
 }

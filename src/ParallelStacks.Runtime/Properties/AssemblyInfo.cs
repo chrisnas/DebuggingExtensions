@@ -28,8 +28,13 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
+//
+// version 1.2
+// -----------------------------------------
+//  - show 4 thread IDs per frame group by default (also allow all threads to be displayed)
+//
 //
 // version 1.1
 // -----------------------------------------

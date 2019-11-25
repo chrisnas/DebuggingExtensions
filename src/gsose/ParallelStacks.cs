@@ -37,8 +37,14 @@ namespace gsose
                 return;
             }
 
-            // display parallel stacks
-            var visitor = new ConsoleRenderer(useDml: true);
+            int threadIDsCountLimit = 4;
+            if (args.Trim().ToLower().StartsWith("-all"))
+            {
+                threadIDsCountLimit = -1;
+            }
+
+            // display parallel stacks without limiting thread ID count
+            var visitor = new ConsoleRenderer(useDml: true, limit: threadIDsCountLimit);
             Console.WriteLine();
             foreach (var stack in ps.Stacks)
             {

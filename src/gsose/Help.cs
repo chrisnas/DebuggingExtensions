@@ -257,23 +257,25 @@ namespace gsose
             "-------------------------------------------------------------------------------\r\n" +
             "!pstacks\r\n" +
             "\r\n" +
-            "!pstacks merges parallel stacks" +
+            "!pstacks merges parallel stacks.\r\n" +
+            "List 4 thread IDs at the end of each frame groups (-all to get the full list).\r\n" +
+            "Click such a thread ID to change current thread.\r\n" +
             "\r\n" +
-            "0:000> !pstacks\r\n" +
+            "0:000> !pstacks (-all)\r\n" +
             "________________________________________________\r\n" +
-            "~~~~\r\n" +
+            "~~~~ 8f8c\r\n" +
             "    1 (dynamicClass).IL_STUB_PInvoke(IntPtr, Byte*, Int32, Int32 ByRef, IntPtr)\r\n" +
             "    ...\r\n" +
             "    1 System.Console.ReadLine()\r\n" +
             "    1 NetCoreConsoleApp.Program.Main(String[])\r\n" +
             "\r\n" +
             "________________________________________________\r\n" +
-            "           ~~~~\r\n" +
+            "           ~~~~ 7034\r\n" +
             "              1 System.Threading.Monitor.Wait(Object, Int32, Boolean)\r\n" +
             "              ...\r\n" +
             "              1 System.Threading.Tasks.Task.Wait()\r\n" +
             "              1 NetCoreConsoleApp.Program+c.b__1_4(Object)\r\n" +
-            "           ~~~~\r\n" +
+            "           ~~~~ 9c6c,4020\r\n" +
             "              2 System.Threading.Monitor.Wait(Object, Int32, Boolean)\r\n" +
             "              ...\r\n" +
             "                   2 NetCoreConsoleApp.Program+c__DisplayClass1_0.b__7()\r\n" +
