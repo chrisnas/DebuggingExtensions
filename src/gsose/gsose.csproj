@@ -103,6 +103,9 @@
     <Compile Include="..\ParallelStacks.Runtime\ConsoleRenderer.cs">
       <Link>ConsoleRenderer.cs</Link>
     </Compile>
+    <Compile Include="..\ParallelStacks.Runtime\IHtmlRenderer.cs">
+      <Link>IHtmlRenderer.cs</Link>
+    </Compile>
     <Compile Include="..\ParallelStacks.Runtime\IRenderer.cs">
       <Link>IRenderer.cs</Link>
     </Compile>
@@ -111,6 +114,9 @@
     </Compile>
     <Compile Include="..\ParallelStacks.Runtime\RendererBase.cs">
       <Link>RendererBase.cs</Link>
+    </Compile>
+    <Compile Include="..\ParallelStacks.Runtime\RendererHelpers.cs">
+      <Link>RendererHelpers.cs</Link>
     </Compile>
     <Compile Include="..\ParallelStacks.Runtime\StackFrame.cs">
       <Link>StackFrame.cs</Link>

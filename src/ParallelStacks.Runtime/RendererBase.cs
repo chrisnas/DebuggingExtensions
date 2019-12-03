@@ -5,7 +5,7 @@ namespace ParallelStacks.Runtime
     {
         private readonly int _limit;
 
-        public RendererBase(int limit)
+        protected RendererBase(int limit)
         {
             _limit = limit;
         }

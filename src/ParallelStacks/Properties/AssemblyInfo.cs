@@ -28,8 +28,13 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.3.1.0")]
+[assembly: AssemblyFileVersion("1.3.1.0")]
+//
+// version 1.3.1
+// -----------------------------------------
+//  - use new version of ParallelStack.Runtime implementation
+//
 //
 // version 1.3
 // -----------------------------------------
@@ -40,11 +45,13 @@ using System.Runtime.InteropServices;
 // -----------------------------------------
 //  - attaching to a live process now works with ClrMD 1.1.35704
 //
+//
 // version 1.1
 // -----------------------------------------
 //  - supports attaching to a live process (even on Linux but not working with ClrMD 1.1.35504)
 //  - change parallel stacks rendering implementation
 //  - update dependencies version
+//
 //
 // version 1.0.1
 // -----------------------------------------
