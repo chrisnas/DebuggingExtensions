@@ -8,7 +8,8 @@ namespace ParallelStacks
         static void Main(string[] args)
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            ConsoleApp.Run("pstacks", $"{version.Major}.{version.Minor}.{version.Build}", args);
+            ConsoleApp.Run("dotnet-pstacks", $"{version.Major}.{version.Minor}.{version.Build}", args);
+            return;
         }
     }
 }

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("pstacks")]
-[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2019")]
+[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2019-2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -28,8 +28,13 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.3.1.0")]
-[assembly: AssemblyFileVersion("1.3.1.0")]
+[assembly: AssemblyVersion("1.3.2.0")]
+[assembly: AssemblyFileVersion("1.3.2.0")]
+//
+// version 1.3.2
+// -----------------------------------------
+//  - update copyright year and support Global CLI tool
+//
 //
 // version 1.3.1
 // -----------------------------------------
