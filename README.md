@@ -6,6 +6,9 @@ The few "debugging extensions" that have been created at Criteo to help post-mor
 - as a [WinDBG extension](./Documentation/gsose.md) to get the same level of details plus more commands such as getting a method signature based on its address.
    [zip](./binaries/gsose-1.6.1_x64.zip)
 - as a [.NET Core console tool](./Documentation/pstacks.md) to load a .NET application memory dump and show merged threads call stack à la Visual Studio "parallel stacks" (works also on Linux).
+   Note that you could install it as a global CLI tool
+   - "dotnet tool install --global dotnet-pstacks" to install it
+   - "dotnet pstacks <pid or .dmp file path>" to get your parallel stacks
    [zip](./binaries/pstacks-1.1.zip)
 - as a [.NET standard assembly](./Documentation/parallelStacks.Runtime.md) to build and render parallel stacks from a memory dump file or a live process (on Windows only).
    [zip](./binaries/ParallelStacks.Runtime-1.0.zip)
@@ -34,6 +37,8 @@ Part 7: [Manipulate nested structs using dynamic.](http://labs.criteo.com/2017/0
 Part 8: [Spelunking inside the .NET Thread Pool.](http://labs.criteo.com/2017/11/clrmd-part-8-spelunking-inside-the-net-thread-pool/)
 
 Part 9: [Deciphering Tasks and Thread Pool items.](http://labs.criteo.com/2017/12/clrmd-part-9-deciphering-tasks-thread-pool-items/)
+
+part 10: [Getting another view on thread stacks with ClrMD](https://medium.com/@chnasarre/getting-another-view-on-thread-stacks-with-clrmd-2fd683642a73/)
 
 The detailed features are available either as a [stand alone tool](./Documentation/ClrMDStudio.md) or a [WinDBG extension](./Documentation/gsose.md).
 More commands will be added as needed.
