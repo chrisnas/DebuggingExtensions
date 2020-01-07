@@ -5,11 +5,11 @@ The few "debugging extensions" that have been created at Criteo to help post-mor
    [zip](./binaries/ClrMDStudio-1.5.2_x64.zip)
 - as a [WinDBG extension](./Documentation/gsose.md) to get the same level of details plus more commands such as getting a method signature based on its address.
    [zip](./binaries/gsose-1.6.1_x64.zip)
-- as a [.NET Core console tool](./Documentation/pstacks.md) to load a .NET application memory dump and show merged threads call stack à la Visual Studio "parallel stacks" (works also on Linux).
+- as a [.NET Core console tool](./Documentation/pstacks.md) to load a .NET application memory dump and show merged threads call stack à la Visual Studio "parallel stacks" (works also on Linux)
+   [zip](./binaries/pstacks-1.1.zip).
    Note that you could install it as a global CLI tool
    - "dotnet tool install --global dotnet-pstacks" to install it
    - "dotnet pstacks <pid or .dmp file path>" to get your parallel stacks
-   [zip](./binaries/pstacks-1.1.zip)
 - as a [.NET standard assembly](./Documentation/parallelStacks.Runtime.md) to build and render parallel stacks from a memory dump file or a live process (on Windows only).
    [zip](./binaries/ParallelStacks.Runtime-1.0.zip)
 
