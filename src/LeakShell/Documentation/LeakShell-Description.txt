@@ -1,0 +1,18 @@
+﻿LeakShell is a tool that works in conjonction with the output of the !dumpheap command provided by the SOS.dll extension.
+Each time the user copy to the clipboard the result of a "!dumpheap" command, LeakShell intercepts it, build an internal representation of the corresponding types snapshot.
+Once you get several snapshots, LeakShell lets you compare them and display the allocations types that remain between two snapshots.
+
+The first clipboard copy is used as the reference and is displayed with a yellow star in the upper snapshots list.
+The other clipboard copies are used as a new current state that should be compared to the reference. 
+if you want to change the current snapshot, double-click it. If you need to change the reference, select it and click on the "Set Ref" button in the upper left.
+The two charts on the upper right of the window shows the evolution of the number of instances and of the size of the memory managed by the GC.
+
+In the lower par the of the window, the differences are displayed in two forms. 
+First, the "raw" tab presents a textbox from which you can copy and paste information such as method table addresses or type names.
+Second, the "sorted list" tab allows you to sort the difference result by count, size or class name. 
+If you want to always keep an eye on specific classes, double-click it and it will stay in the lower list. Double-click it to remove this filter.
+Last but not least, classes from the BLC can be removed from the comparison by selecting the corresponding checkbox.
+
+I hope this helps.
+
+   Christophe Nasarre

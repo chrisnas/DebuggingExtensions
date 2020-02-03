@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParallelStacks", "ParallelS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParallelStacks.Runtime", "ParallelStacks.Runtime\ParallelStacks.Runtime.csproj", "{99564355-E8F1-4976-867F-CE968AC202ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-pstacks", "dotnet-pstacks\dotnet-pstacks.csproj", "{F3B79A28-D82C-4A93-9EA6-95B7211D8DCE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-pstacks", "dotnet-pstacks\dotnet-pstacks.csproj", "{F3B79A28-D82C-4A93-9EA6-95B7211D8DCE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeakShell", "LeakShell\LeakShell.csproj", "{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,16 @@ Global
 		{F3B79A28-D82C-4A93-9EA6-95B7211D8DCE}.Release|x64.Build.0 = Release|Any CPU
 		{F3B79A28-D82C-4A93-9EA6-95B7211D8DCE}.Release|x86.ActiveCfg = Release|Any CPU
 		{F3B79A28-D82C-4A93-9EA6-95B7211D8DCE}.Release|x86.Build.0 = Release|Any CPU
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Debug|x64.ActiveCfg = Debug|x64
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Debug|x64.Build.0 = Debug|x64
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Debug|x86.ActiveCfg = Debug|x86
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Debug|x86.Build.0 = Debug|x86
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Release|Any CPU.ActiveCfg = Release|x86
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Release|x64.ActiveCfg = Release|x64
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Release|x64.Build.0 = Release|x64
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Release|x86.ActiveCfg = Release|x86
+		{B1897050-DE5D-4652-A4F5-7DB084EE7BD2}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

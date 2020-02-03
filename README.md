@@ -12,8 +12,9 @@ The few "debugging extensions" that have been created at Criteo to help post-mor
    - "dotnet pstacks <pid or .dmp file path>" to get your parallel stacks
 - as a [.NET standard assembly](./Documentation/parallelStacks.Runtime.md) to build and render parallel stacks from a memory dump file or a live process (on Windows only).
    [zip](./binaries/ParallelStacks.Runtime-1.0.zip)
+  More analyzers and commands will be added as needed.
 
-More analyzers and commands will be added as needed.
+- as a [GUI tool](./Documentation/leakShell.md) first published in 2011 to chase .NET memory leaks. The source code is now available and dumps are droppable into the snapshot listview to compare them automatically.
 
 
 
@@ -56,6 +57,8 @@ The `DebuggingExtensions` Visual Studio 2017 solution contains three projects:
 3. `pstacks`: .NET Core console application that loads a dump file (+ attachs to a live process on Windows) and shows merged parallel stacks
 
 4. `ParallelStacks.Runtime`: .NET Assembly (and available as a nuget too) to let you build and render parallel stacks from your own code
+
+5. `LeakShell`: .NET WinForms application to easily spot leaky class instances
 
 
 These projects depends on Nuget packages:
