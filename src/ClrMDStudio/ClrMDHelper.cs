@@ -192,6 +192,43 @@ namespace ClrMDStudio
         public string MethodName { get; set; }
     }
 
+    public class StringStatistics
+    {
+        public readonly ulong TotalHeapSize;
+        public readonly Dictionary<string, int> Strings;
+        public readonly GenStatistics[] Stats;
+
+        private const int MaxGen = 4;
+        public StringStatistics(ClrHeap heap)
+        {
+            TotalHeapSize = heap.TotalHeapSize;
+            Strings = new Dictionary<string, int>(1024 * 1024);
+            Stats = new GenStatistics[MaxGen];
+
+            for (int gen = 0; gen < MaxGen; gen++) Stats[gen] = new GenStatistics(heap.GetSizeByGen(gen));
+        }
+    }
+    public struct GenStatistics
+    {
+        public ulong Count;
+        public ulong DuplicatedCount;
+        public ulong TotalCount;
+        public ulong Size;
+        public ulong DuplicatedSize;
+        public readonly ulong TotalSize;
+
+        public GenStatistics(ulong totalSize)
+        {
+            TotalSize = totalSize;
+            Count = 0;
+            DuplicatedCount = 0;
+            TotalCount = 0;
+            Size = 0;
+            DuplicatedSize = 0;
+        }
+    }
+
+
     public class ClrMDHelper
     {
         private ClrRuntime _clr;
@@ -1168,6 +1205,63 @@ namespace ClrMDStudio
         }
 
 
+        public StringStatistics ComputeDuplicatedStringsStatistics()
+        {
+            if (!_heap.CanWalkHeap)
+                return null;
+
+            ClrModule mscorlib = GetMscorlib();
+            if (mscorlib == null)
+                return null;
+
+            var stringType = mscorlib.GetTypeByName("System.String");
+            if (stringType == null)
+                return null;
+
+            var stats = new StringStatistics(_heap);
+            var strings = stats.Strings;
+            foreach (var address in _heap.EnumerateObjectAddresses())
+            {
+                try
+                {
+                    var objType = _heap.GetObjectType(address);
+                    if (objType == null) continue;
+                    if (objType == _heap.Free) continue;
+
+                    // can't use ClrHeap.GetGeneration because it considers loh as gen 2 
+                    var gen = GetObjectGeneration(address);
+                    stats.Stats[gen].TotalCount++;
+
+                    if (objType != stringType) continue;
+                    var obj = objType.GetValue(address);
+                    string s = obj as string;
+                    var stringSize = (ulong)s.Length * 2;  // UTF16 strings require 2 bytes per character
+
+                    if (!strings.TryGetValue(s, out var currentCount))
+                    {
+                        currentCount = 0;
+                    }
+                    else
+                    {
+                        // this is a duplicated string so count it in the duplicated statistics
+                        stats.Stats[gen].DuplicatedCount++;
+                        stats.Stats[gen].DuplicatedSize += stringSize;
+                    }
+                    strings[s] = currentCount + 1;
+
+                    stats.Stats[gen].Count++;
+                    stats.Stats[gen].Size += stringSize;
+                }
+                catch (Exception x)
+                {
+                    Debug.WriteLine(x);
+                    // some InvalidOperationException seems to occur  :^(
+                }
+            }
+
+            return stats;
+        }
+
         public Dictionary<string, int> ComputeDuplicatedStrings()
         {
             Dictionary<string, int> strings = new Dictionary<string, int>(1024 * 1024);
@@ -1210,6 +1304,29 @@ namespace ClrMDStudio
             }
 
             return strings;
+        }
+
+        private int GetObjectGeneration(ulong address)
+        {
+            var segment = _heap.GetSegmentByAddress(address);
+            if (segment != null)
+            {
+                var generation = segment.GetGeneration(address);
+
+                // take care of LOH case
+                if ((generation == 2) && (segment.IsLarge))
+                    generation = 3;
+
+                return generation;
+            }
+            else
+            {
+                // should never occur if the address is in the heap
+                // don't check it at the beginning of the method because
+                // it is supposed to be called internally with valid 
+                // addresses
+                return -1;
+            }
         }
 
         public IReadOnlyList<PinnedObjectsGeneration> ComputePinnedObjects()

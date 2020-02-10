@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ClrMDStudio\ClrMDHelper.cs" Link="ClrMDHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DynaMD" Version="1.0.7.3" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.61812" />
+  </ItemGroup>
+
+</Project>

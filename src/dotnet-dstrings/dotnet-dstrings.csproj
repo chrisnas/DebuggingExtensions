@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <RootNamespace>dstrings</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dotnet-dstrings</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>dotnet-dstrings</PackageId>
+    <PackageVersion>1.1.0</PackageVersion>
+    <Title>dotnet-dstrings</Title>
+    <Authors>Christophe Nasarre</Authors>
+    <Owners>chrisnas</Owners>
+    <PackageProjectUrl>https://github.com/chrisnas/DebuggingExtensions</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/chrisnas/DebuggingExtensions/blob/master/LICENSE</PackageLicenseUrl>
+    <Description>Global CLI tool to provide duplicated strings statistics</Description>
+    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
+    <Copyright>Copyright Christophe Nasarre $([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
+    <PackageTags>ClrMD Duplicated Strings</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ClrMDStudio\ClrMDHelper.cs" Link="ClrMDHelper.cs" />
+    <Compile Include="..\dstrings\ConsoleApp.cs" Link="ConsoleApp.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DynaMD" Version="1.0.7.3" />
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.61812" />
+  </ItemGroup>
+
+</Project>

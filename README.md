@@ -15,6 +15,10 @@ The few "debugging extensions" that have been created at Criteo to help post-mor
   More analyzers and commands will be added as needed.
 
 - as a [GUI tool](./Documentation/leakShell.md) first published in 2011 to chase .NET memory leaks. The source code is now available and dumps are droppable into the snapshot listview to compare them automatically.
+- as a [.NET Core console tool](./Documentation/dstrings.md) to analyze duplicated strings in a .NET application (live/memory dump) (works also on Linux)
+   Note that you could install it as a global CLI tool
+   - "dotnet tool install --global dotnet-dstrings" to install it
+   - "dotnet dstrings <pid or .dmp file path>" to get the statistics 
 
 
 
@@ -59,6 +63,8 @@ The `DebuggingExtensions` Visual Studio 2017 solution contains three projects:
 4. `ParallelStacks.Runtime`: .NET Assembly (and available as a nuget too) to let you build and render parallel stacks from your own code
 
 5. `LeakShell`: .NET WinForms application to easily spot leaky class instances
+
+6. `dstrings`: .NET Core console application that displays duplicated strings statistics 
 
 
 These projects depends on Nuget packages:
