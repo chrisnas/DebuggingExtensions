@@ -440,31 +440,32 @@ public partial class MainFrame : Form
 
 
     private void SetReferenceSnapshot(HeapSnapshot snapshot)
-{
-// sanity checks
-if (snapshot == null)
-{
-return;
-}
+    {
+        // sanity checks
+        if (snapshot == null)
+        {
+            return;
+        }
 
-// remove current "reference" item
-SnapshotListViewItem referenceItem = GetSnapshotItem(SnapshotListViewItemState.Reference);
-if (referenceItem != null)
-{
-referenceItem.State = SnapshotListViewItemState.None;
+        // remove current "reference" item
+        SnapshotListViewItem referenceItem = GetSnapshotItem(SnapshotListViewItemState.Reference);
+        if (referenceItem != null)
+        {
+            referenceItem.State = SnapshotListViewItemState.None;
 
-referenceItem.ImageIndex = -1;
-// Note: the item must be redrawn when the image is reset to -1
-lvSnapshots.RedrawItems(referenceItem.Index, referenceItem.Index, "force redraw" == null);
-}
+            referenceItem.ImageIndex = -1;
+            // Note: the item must be redrawn when the image is reset to -1
+            lvSnapshots.RedrawItems(referenceItem.Index, referenceItem.Index, "force redraw" == null);
+        }
 
-// update the new "reference" item
-SnapshotListViewItem item = GetSnapshotItem(snapshot);
-item.State = SnapshotListViewItemState.Reference;
-item.ImageIndex = ReferenceImageIndex;
+        // update the new "reference" item
+        SnapshotListViewItem item = GetSnapshotItem(snapshot);
+        item.State = SnapshotListViewItemState.Reference;
+        item.ImageIndex = ReferenceImageIndex;
 
-_reference = snapshot;
-}
+        _reference = snapshot;
+    }
+
     private void SetCurrentSnapshot(HeapSnapshot snapshot)
     {
         // sanity checks

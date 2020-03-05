@@ -10,7 +10,7 @@ namespace LeakShell
     {
         private static readonly InvalidOperationException InvalidFormatException =
             new InvalidOperationException(
-                "Invalid !heapstat -stat list format.\r\n   Don't forget to copy the whole output; including the final \"Total ... objects\" line.");
+                "Invalid !heapstat -stat list format.\r\n   Don't forget to copy the whole output starting from \"MT    Count    TotalSize Class Name\"; including the final \"Total ... objects\" line.");
 
         /*
         !dumpheap -stat
@@ -26,6 +26,8 @@ namespace LeakShell
         5fc4f9ac     6581       381508 System.String
         Total 46832 objects
         */
+
+        private const string Header = "MT    Count    TotalSize Class Name";
         public static HeapSnapshot CreateFromHeapStat(string dumpheap)
         {
             // sanity checks
@@ -34,7 +36,7 @@ namespace LeakShell
                 throw InvalidFormatException;
             }
 
-            if (!dumpheap.Contains("!dumpheap -stat"))
+            if (!dumpheap.Contains(Header))
             {
                 throw InvalidFormatException;
             }
@@ -57,20 +59,7 @@ namespace LeakShell
                     switch (state)
                     {
                         case DumpHeapParsingState.Init:
-                            if (line.Contains("!dumpheap -stat"))
-                            {
-                                state = DumpHeapParsingState.Comment;
-                            }
-                            break;
-
-                        case DumpHeapParsingState.Comment:
-                            /*
-                                PDB symbol for clr.dll not loaded
-                                total 0 objects
-                                Statistics:
-                                        MT    Count    TotalSize Class Name
-                            */
-                            if (line.TrimStart().StartsWith("MT"))
+                            if (line.Contains(Header))
                             {
                                 state = DumpHeapParsingState.TypeEntries;
                             }
@@ -300,7 +289,6 @@ namespace LeakShell
         enum DumpHeapParsingState
         {
             Init = 0,
-            Comment,
             TypeEntries,
             End,
             Error,
