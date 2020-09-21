@@ -15,10 +15,17 @@ namespace ParallelStacks.Runtime
             foreach (var thread in runtime.Threads)
             {
                 stackFrames.Clear();
-
+#if ClrMD1
                 foreach (var stackFrame in thread.StackTrace.Reverse())
+#else
+                foreach (var stackFrame in thread.EnumerateStackTrace().Reverse())
+#endif
                 {
+#if ClrMD1
                     if (stackFrame.Kind != ClrStackFrameType.ManagedMethod)
+#else
+                    if ((stackFrame.Kind != ClrStackFrameKind.ManagedMethod) || (stackFrame.Method == null))
+#endif
                         continue;
 
                     stackFrames.Add(stackFrame);
@@ -39,6 +46,7 @@ namespace ParallelStacks.Runtime
             ParallelStack ps = null;
             try
             {
+#if ClrMD1
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     dataTarget = DataTarget.LoadCrashDump(dumpFile);
@@ -47,6 +55,15 @@ namespace ParallelStacks.Runtime
                 {
                     dataTarget = DataTarget.LoadCoreDump(dumpFile);
                 }
+#else
+                if (
+                    (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) ||
+                    (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                )
+                {
+                    dataTarget = DataTarget.LoadDump(dumpFile);
+                }
+#endif
                 else
                 {
                     throw new InvalidOperationException("Unsupported platform...");
@@ -74,6 +91,7 @@ namespace ParallelStacks.Runtime
             ParallelStack ps = null;
             try
             {
+#if ClrMD1
                 const uint msecTimeout = 2000;
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -86,6 +104,18 @@ namespace ParallelStacks.Runtime
                     // ClrMD implementation for Linux is available only for Passive
                     dataTarget = DataTarget.AttachToProcess(pid, msecTimeout, AttachFlag.Passive);
                 }
+#else
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    dataTarget = DataTarget.AttachToProcess(pid, true);
+                }
+                else
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    // ClrMD implementation for Linux is available only for Passive
+                    dataTarget = DataTarget.AttachToProcess(pid, true);
+                }
+#endif
                 else
                 {
                     throw new InvalidOperationException("Unsupported platform...");
@@ -110,7 +140,11 @@ namespace ParallelStacks.Runtime
         private static ClrRuntime CreateRuntime(DataTarget dataTarget, string dacFilePath)
         {
             // check bitness first
+#if ClrMD1
             bool isTarget64Bit = (dataTarget.PointerSize == 8);
+#else
+            bool isTarget64Bit = (dataTarget.DataReader.PointerSize == 8);
+#endif
             if (Environment.Is64BitProcess != isTarget64Bit)
             {
                 throw new InvalidOperationException(
@@ -138,7 +172,11 @@ namespace ParallelStacks.Runtime
         private void AddStack(uint threadId, ClrStackFrame[] frames, int index = 0)
         {
             ThreadIds.Add(threadId);
+#if ClrMD1
             var firstFrame = frames[index].DisplayString;
+#else
+            var firstFrame = frames[index].Method?.Signature;
+#endif
             var callstack = Stacks.FirstOrDefault(s => s.Frame.Text == firstFrame);
             if (callstack == null)
             {

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ParallelStacks.Runtime")]
-[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2019")]
+[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2019-2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -28,8 +28,19 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("2.0.1.0")]
+[assembly: AssemblyFileVersion("2.0.1.0")]
+//
+// version 2.0.1
+// -----------------------------------------
+//  - add a strong name to be useable by dotnet-dump
+//
+//
+// version 2.0
+// -----------------------------------------
+//  - use ClrMD 2.0
+//  - update copyright year to 2020
+//
 //
 // version 1.3
 // -----------------------------------------

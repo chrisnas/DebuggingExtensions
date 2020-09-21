@@ -15,7 +15,12 @@ namespace ParallelStacks
 
         public StackFrame(ClrStackFrame frame)
         {
+#if ClrMD1
             Text = string.Intern(frame.DisplayString);
+#else
+            var signature = frame.Method?.Signature;
+            Text = string.IsNullOrEmpty(signature) ? "?" : string.Intern(signature);
+#endif
             Signature = new List<string>();
             ComputeNames(frame);
         }
@@ -36,7 +41,11 @@ namespace ParallelStacks
 
             // generic methods are not well formatted by ClrMD
             // foo<...>()  =>   foo[[...]]()
-            var fullName = frame.Method.GetFullSignature();
+#if ClrMD1
+            var fullName = frame.Method?.GetFullSignature();
+#else
+            var fullName = frame.Method?.Signature;
+#endif
             MethodName = frame.Method.Name;
             if (MethodName.EndsWith("]]"))
             {

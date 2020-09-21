@@ -28,8 +28,12 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.3.2.0")]
-[assembly: AssemblyFileVersion("1.3.2.0")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyFileVersion("2.0.0.0")]
+//
+// version 2.0.0
+// -----------------------------------------
+//  - use ClrMD 2.0
 //
 // version 1.3.2
 // -----------------------------------------

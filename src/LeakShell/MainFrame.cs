@@ -364,7 +364,7 @@ public partial class MainFrame : Form
     }
     private HeapSnapshot GetSnapshotFromDumpHeap_Stat(string heapdump)
     {
-        // protect against ill-formatted "!dumpheap -stat" output
+        // protect against ill-formatted "!dumpheap -stat" output or unrelated text
         HeapSnapshot snapshot;
         try
         {
@@ -372,7 +372,6 @@ public partial class MainFrame : Form
         }
         catch (InvalidOperationException x)
         {
-            MessageBox.Show(this, x.Message, "Error while parsing '!dumpheap -stat' output");
             snapshot = null;
         }
 
