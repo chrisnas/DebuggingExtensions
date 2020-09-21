@@ -31,8 +31,10 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5.1.0")]
-[assembly: AssemblyFileVersion("1.5.1.0")]
+[assembly: AssemblyVersion("1.5.2.0")]
+[assembly: AssemblyFileVersion("1.5.2.0")]
+//
+//  1.5.2 : remove error message box when invalid dumpheap output
 //
 //  1.5.1 : no need to have "!dumpheap -stat" in the text, only the "MT    Count    TotalSize Class Name" header
 //
