@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFrameworks>netcoreapp3.0;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <RootNamespace>ParallelStacks</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
@@ -14,17 +14,24 @@
 
   <PropertyGroup>
     <PackageId>dotnet-pstacks</PackageId>
-    <PackageVersion>1.3.2</PackageVersion>
+    <PackageVersion>2.0.2</PackageVersion>
     <Title>dotnet-stacks</Title>
     <Authors>Christophe Nasarre</Authors>
     <Owners>chrisnas</Owners>
+    <RepositoryUrl>https://github.com/chrisnas</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/chrisnas/DebuggingExtensions</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/chrisnas/DebuggingExtensions/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Global CLI tool to display merged call stacks</Description>
-    <PackageReleaseNotes>Initial version</PackageReleaseNotes>
+    <PackageReleaseNotes>Add support to .NET Core 3.0, 3.1, .NET 5.0, 6.0</PackageReleaseNotes>
     <Copyright>Copyright Christophe Nasarre 2019-$([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
     <PackageTags>ClrMD Thread Stack</PackageTags>
   </PropertyGroup>
+
+  <!--add LICENCE file to the package (PackageLicenceUlr no more supported)-->
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ParallelStacks.Runtime\ParallelStacks.Runtime.csproj" />

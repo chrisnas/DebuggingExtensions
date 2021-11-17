@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ParallelStacks.Runtime")]
-[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2019-2020")]
+[assembly: AssemblyCopyright("Copyright © Christophe Nasarre 2019-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -28,8 +28,15 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("2.0.1.0")]
-[assembly: AssemblyFileVersion("2.0.1.0")]
+[assembly: AssemblyVersion("2.0.2.0")]
+[assembly: AssemblyFileVersion("2.0.2.0")]
+//
+// version 2.0.2
+// -----------------------------------------
+//  - add support for .NET Core 3.0, 3.1, .NET 5.0, 6.0
+//  - remove support for .NET Core 2.2
+//  - add LICENCE file to the package
+//
 //
 // version 2.0.1
 // -----------------------------------------
