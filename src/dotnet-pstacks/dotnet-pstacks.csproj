@@ -1,46 +1,48 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.0;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
+    <RollForward>Major</RollForward>
     <RootNamespace>ParallelStacks</RootNamespace>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-pstacks</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>dotnet-pstacks</PackageId>
-    <PackageVersion>2.0.2</PackageVersion>
-    <Title>dotnet-stacks</Title>
+    <Version>3.0.0</Version>
+    <Title>dotnet-pstacks</Title>
+    <Product>ParallelStacks</Product>
     <Authors>Christophe Nasarre</Authors>
     <Owners>chrisnas</Owners>
-    <RepositoryUrl>https://github.com/chrisnas</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
+    <Description>Global CLI tool and MCP stdio server to display merged call stacks</Description>
+    <Copyright>Copyright © Christophe Nasarre 2019-$([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/chrisnas/DebuggingExtensions</PackageProjectUrl>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <Description>Global CLI tool to display merged call stacks</Description>
-    <PackageReleaseNotes>Add support to .NET Core 3.0, 3.1, .NET 5.0, 6.0</PackageReleaseNotes>
-    <Copyright>Copyright Christophe Nasarre 2019-$([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
-    <PackageTags>ClrMD Thread Stack</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/chrisnas/DebuggingExtensions</RepositoryUrl>
+    <PackageTags>ClrMD Thread Stack MCP</PackageTags>
+    <PackageReleaseNotes>Migrated to ClrMD 3.0, added MCP server support, targets .NET 6+</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
-  <!--add LICENCE file to the package (PackageLicenceUlr no more supported)-->
   <ItemGroup>
-    <None Include="..\..\LICENSE" Pack="true" PackagePath=""/>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ParallelStacks.Runtime\ParallelStacks.Runtime.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System">
-      <HintPath>System</HintPath>
-    </Reference>
+    <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="3.1.512801" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
