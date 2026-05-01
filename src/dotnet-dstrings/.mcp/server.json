@@ -1,0 +1,35 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.chrisnas/dotnet-dstrings",
+  "description": "Analyzes duplicated strings in .NET processes or memory dumps with per-generation heap statistics",
+  "title": "Duplicated Strings Analyzer",
+  "repository": {
+    "url": "https://github.com/chrisnas/DebuggingExtensions",
+    "source": "github",
+    "subfolder": "src/dotnet-dstrings"
+  },
+  "version": "2.0.0",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "registryBaseUrl": "https://api.nuget.org/v3/index.json",
+      "identifier": "dotnet-dstrings",
+      "version": "2.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "--mcp"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "installation": "dotnet tool install -g dotnet-dstrings",
+      "note": "runtimeHint 'dnx' would allow auto-install but requires .NET 10+ SDK. Until then, install the tool globally first."
+    }
+  }
+}

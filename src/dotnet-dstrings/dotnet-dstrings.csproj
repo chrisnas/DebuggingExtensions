@@ -37,6 +37,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include=".mcp\server.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,5 +45,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
   </ItemGroup>
+
+  <Target Name="UpdateMcpServerVersion" BeforeTargets="Build">
+    <Exec Command="powershell -NoProfile -Command &quot;(Get-Content '.mcp\server.json') -replace '\x22version\x22:\s*\x22[^\x22]+\x22', ([char]34+'version'+[char]34+': '+[char]34+'$(Version)'+[char]34) | Set-Content '.mcp\server.json'&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
 
 </Project>

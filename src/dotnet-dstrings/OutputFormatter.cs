@@ -1,43 +1,12 @@
-using System.ComponentModel;
 using System.Text;
-using ModelContextProtocol.Server;
 
 namespace dstrings;
 
-[McpServerToolType]
-public static class DuplicatedStringsTool
+public static class OutputFormatter
 {
-    [McpServerTool, Description("Lists duplicated managed strings sorted by total size with per-generation statistics. " +
-        "Provide either a process ID or a dump file path (not both).")]
-    public static string GetDuplicatedStrings(
-        [Description("Process ID to attach to (mutually exclusive with dumpPath)")] int? pid = null,
-        [Description("Path to a memory dump file (mutually exclusive with pid)")] string? dumpPath = null,
-        [Description("Minimum occurrence count to display (default: 128)")] int countThreshold = 128,
-        [Description("Minimum cumulated size in KB to display (default: 100)")] int sizeThresholdKB = 100,
-        [Description("Max string length to display (default: 64)")] int stringLengthLimit = 64)
-    {
-        if (pid.HasValue == !string.IsNullOrEmpty(dumpPath))
-            return "Error: provide either a process ID or a dump file path, but not both.";
-
-        try
-        {
-            var analyzer = StringAnalyzer.Analyze(pid, dumpPath);
-            ulong sizeThresholdBytes = (ulong)sizeThresholdKB * 1024;
-
-            var sb = new StringBuilder();
-            FormatGenerationStats(sb, analyzer.GenerationStats);
-            FormatDuplicatedStrings(sb, analyzer.Duplicates, countThreshold, sizeThresholdBytes, stringLengthLimit);
-            return sb.ToString();
-        }
-        catch (Exception ex)
-        {
-            return $"Error: {ex.Message}";
-        }
-    }
-
     private const string RowFormat = "{0,8}  {1,12}  {2,9}  {3,10}  {4,9}  {5,10}  {6,9}";
 
-    private static void FormatGenerationStats(StringBuilder sb, GenerationStats[] stats)
+    public static void FormatGenerationStats(StringBuilder sb, GenerationStats[] stats)
     {
         sb.AppendLine(string.Format(RowFormat, "Heap", "StringSize", "DupSize%", "HeapSize%", "Count", "DupCount%", "HeapCount"));
         sb.AppendLine(new string('-', 79));
@@ -77,7 +46,7 @@ public static class DuplicatedStringsTool
         sb.AppendLine();
     }
 
-    private static void FormatDuplicatedStrings(
+    public static void FormatDuplicatedStrings(
         StringBuilder sb,
         List<StringDuplicateInfo> duplicates,
         int countThreshold,
